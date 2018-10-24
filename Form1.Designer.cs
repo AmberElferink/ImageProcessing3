@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(INFOIBV));
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series7 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series8 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Title title4 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.LoadImageButton1 = new System.Windows.Forms.Button();
             this.openImageDialog = new System.Windows.Forms.OpenFileDialog();
             this.imageFileName1 = new System.Windows.Forms.TextBox();
@@ -61,8 +61,6 @@
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.FourierSamples = new System.Windows.Forms.Label();
-            this.checkBinary = new System.Windows.Forms.CheckBox();
-            this.checkBlackBackground = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -299,42 +297,32 @@
             // 
             // chart1
             // 
-            this.chart1.BorderlineWidth = 10;
-            chartArea1.AxisX.LabelAutoFitMinFontSize = 20;
-            chartArea1.AxisX.Title = "n";
-            chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            chartArea1.AxisY.LabelAutoFitMinFontSize = 20;
-            chartArea1.AxisY.Title = "Cn Value";
-            chartArea1.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
-            legend1.Alignment = System.Drawing.StringAlignment.Far;
-            legend1.AutoFitMinFontSize = 10;
-            legend1.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
-            legend1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            legend1.IsTextAutoFit = false;
-            legend1.Name = "Legend1";
-            this.chart1.Legends.Add(legend1);
+            chartArea4.AxisX.Title = "n";
+            chartArea4.AxisY.Title = "Cn Value";
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
+            legend4.Alignment = System.Drawing.StringAlignment.Far;
+            legend4.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
+            legend4.Name = "Legend1";
+            this.chart1.Legends.Add(legend4);
             this.chart1.Location = new System.Drawing.Point(984, 26);
             this.chart1.Name = "chart1";
-            series1.BorderWidth = 8;
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series1.Legend = "Legend1";
-            series1.Name = "Cn Real";
-            series2.BorderWidth = 8;
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series2.Legend = "Legend1";
-            series2.Name = "Cn Imaginary";
-            this.chart1.Series.Add(series1);
-            this.chart1.Series.Add(series2);
+            series7.ChartArea = "ChartArea1";
+            series7.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series7.Legend = "Legend1";
+            series7.Name = "Cn Real";
+            series8.ChartArea = "ChartArea1";
+            series8.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series8.Legend = "Legend1";
+            series8.Name = "Cn Imaginary";
+            this.chart1.Series.Add(series7);
+            this.chart1.Series.Add(series8);
             this.chart1.Size = new System.Drawing.Size(691, 669);
             this.chart1.TabIndex = 26;
             this.chart1.Text = "Cn plot";
-            title1.Name = "Fourier Transform";
-            title1.Text = "Fourier Descriptors";
-            this.chart1.Titles.Add(title1);
+            title4.Name = "Fourier Transform";
+            title4.Text = "Fourier Descriptors";
+            this.chart1.Titles.Add(title4);
             // 
             // textBox1
             // 
@@ -354,33 +342,11 @@
             this.FourierSamples.TabIndex = 28;
             this.FourierSamples.Text = "sample every n steps";
             // 
-            // checkBinary
-            // 
-            this.checkBinary.AutoSize = true;
-            this.checkBinary.Location = new System.Drawing.Point(714, 45);
-            this.checkBinary.Name = "checkBinary";
-            this.checkBinary.Size = new System.Drawing.Size(91, 17);
-            this.checkBinary.TabIndex = 29;
-            this.checkBinary.Text = "input is Binary";
-            this.checkBinary.UseVisualStyleBackColor = true;
-            // 
-            // checkBlackBackground
-            // 
-            this.checkBlackBackground.AutoSize = true;
-            this.checkBlackBackground.Location = new System.Drawing.Point(714, 62);
-            this.checkBlackBackground.Name = "checkBlackBackground";
-            this.checkBlackBackground.Size = new System.Drawing.Size(194, 17);
-            this.checkBlackBackground.TabIndex = 30;
-            this.checkBlackBackground.Text = "black background white foreground";
-            this.checkBlackBackground.UseVisualStyleBackColor = true;
-            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1760, 729);
-            this.Controls.Add(this.checkBlackBackground);
-            this.Controls.Add(this.checkBinary);
             this.Controls.Add(this.FourierSamples);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.chart1);
@@ -449,8 +415,6 @@
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label FourierSamples;
-        private System.Windows.Forms.CheckBox checkBinary;
-        private System.Windows.Forms.CheckBox checkBlackBackground;
     }
 }
 
