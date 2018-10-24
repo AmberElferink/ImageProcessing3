@@ -268,7 +268,6 @@
             this.LoadImageButton2.TabIndex = 20;
             this.LoadImageButton2.Text = "Load image 2...";
             this.LoadImageButton2.UseVisualStyleBackColor = true;
-            this.LoadImageButton2.Click += new System.EventHandler(this.LoadImageButton2_Click);
             // 
             // imageFileName2
             // 
