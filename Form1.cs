@@ -84,6 +84,8 @@ namespace INFOIBV
                     ApplyThresholdFilter(thresholdTrackbar.Value);
                 else if (edgeDetection.Checked)
                     ApplyEdgeDetection();
+                else if (greyscaleRadio.Checked)
+                    ApplyGreyscale();
 
 
                 toOutputBitmap();
@@ -818,6 +820,21 @@ namespace INFOIBV
                 progressBar.PerformStep();
             }
             toOutputBitmap();
+        }
+
+        void ApplyGreyscale()
+        {
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image[x, y];                                 // Get the pixel color at coordinate (x,y)
+                    int grey = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;    // aanmaken grijswaarde op basis van RGB-values
+                    Color updatedColor = Color.FromArgb(grey, grey, grey);          // toepassen grijswaarde
+                    newImage[x, y] = updatedColor;
+                    progressBar.PerformStep();
+                }
+            }
         }
 
         int CalculateNewColor(int x, int y, int[,] matrix, int halfBoxSize, bool divideByTotal = true)
