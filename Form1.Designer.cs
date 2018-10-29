@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(INFOIBV));
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title2 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.LoadImageButton1 = new System.Windows.Forms.Button();
             this.openImageDialog = new System.Windows.Forms.OpenFileDialog();
             this.imageFileName1 = new System.Windows.Forms.TextBox();
@@ -63,6 +63,7 @@
             this.edgeDetection = new System.Windows.Forms.RadioButton();
             this.RightAsInput = new System.Windows.Forms.CheckBox();
             this.thresholdValue = new System.Windows.Forms.Label();
+            this.cornerDetRadio = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
@@ -256,41 +257,41 @@
             // chart1
             // 
             this.chart1.BorderlineWidth = 10;
-            chartArea2.AxisX.LabelAutoFitMinFontSize = 20;
-            chartArea2.AxisX.Title = "n";
-            chartArea2.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            chartArea2.AxisY.LabelAutoFitMinFontSize = 20;
-            chartArea2.AxisY.Title = "Cn Value";
-            chartArea2.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            chartArea2.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea2);
-            legend2.Alignment = System.Drawing.StringAlignment.Far;
-            legend2.AutoFitMinFontSize = 10;
-            legend2.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
-            legend2.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            legend2.IsTextAutoFit = false;
-            legend2.Name = "Legend1";
-            this.chart1.Legends.Add(legend2);
+            chartArea1.AxisX.LabelAutoFitMinFontSize = 20;
+            chartArea1.AxisX.Title = "n";
+            chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
+            chartArea1.AxisY.LabelAutoFitMinFontSize = 20;
+            chartArea1.AxisY.Title = "Cn Value";
+            chartArea1.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
+            chartArea1.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea1);
+            legend1.Alignment = System.Drawing.StringAlignment.Far;
+            legend1.AutoFitMinFontSize = 10;
+            legend1.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
+            legend1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
+            legend1.IsTextAutoFit = false;
+            legend1.Name = "Legend1";
+            this.chart1.Legends.Add(legend1);
             this.chart1.Location = new System.Drawing.Point(1057, 15);
             this.chart1.Name = "chart1";
-            series3.BorderWidth = 8;
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series3.Legend = "Legend1";
-            series3.Name = "Cn Real";
-            series4.BorderWidth = 8;
-            series4.ChartArea = "ChartArea1";
-            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series4.Legend = "Legend1";
-            series4.Name = "Cn Imaginary";
-            this.chart1.Series.Add(series3);
-            this.chart1.Series.Add(series4);
+            series1.BorderWidth = 8;
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series1.Legend = "Legend1";
+            series1.Name = "Cn Real";
+            series2.BorderWidth = 8;
+            series2.ChartArea = "ChartArea1";
+            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series2.Legend = "Legend1";
+            series2.Name = "Cn Imaginary";
+            this.chart1.Series.Add(series1);
+            this.chart1.Series.Add(series2);
             this.chart1.Size = new System.Drawing.Size(691, 669);
             this.chart1.TabIndex = 26;
             this.chart1.Text = "Cn plot";
-            title2.Name = "Fourier Transform";
-            title2.Text = "Fourier Descriptors";
-            this.chart1.Titles.Add(title2);
+            title1.Name = "Fourier Transform";
+            title1.Text = "Fourier Descriptors";
+            this.chart1.Titles.Add(title1);
             // 
             // textBox1
             // 
@@ -385,11 +386,23 @@
             this.thresholdValue.Text = "127";
             this.thresholdValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // cornerDetRadio
+            // 
+            this.cornerDetRadio.AutoSize = true;
+            this.cornerDetRadio.Location = new System.Drawing.Point(457, 649);
+            this.cornerDetRadio.Name = "cornerDetRadio";
+            this.cornerDetRadio.Size = new System.Drawing.Size(102, 17);
+            this.cornerDetRadio.TabIndex = 36;
+            this.cornerDetRadio.TabStop = true;
+            this.cornerDetRadio.Text = "corner detection";
+            this.cornerDetRadio.UseVisualStyleBackColor = true;
+            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1760, 729);
+            this.Controls.Add(this.cornerDetRadio);
             this.Controls.Add(this.thresholdValue);
             this.Controls.Add(this.RightAsInput);
             this.Controls.Add(this.edgeDetection);
@@ -461,6 +474,7 @@
         private System.Windows.Forms.RadioButton edgeDetection;
         private System.Windows.Forms.CheckBox RightAsInput;
         private System.Windows.Forms.Label thresholdValue;
+        private System.Windows.Forms.RadioButton cornerDetRadio;
     }
 }
 

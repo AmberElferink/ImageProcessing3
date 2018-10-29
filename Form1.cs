@@ -15,6 +15,8 @@ namespace INFOIBV
         private Bitmap OutputImage;
         Color[,] Image;
         Color[,] newImage;
+        float[,] Kx;
+        float[,] Ky;
 
 
         public INFOIBV()
@@ -63,6 +65,14 @@ namespace INFOIBV
                 kernelInput.Text = WritedrawPointArr(boundary);
                 BoundaryToOutput(boundary);
             }
+            else if (cornerDetRadio.Checked)
+            {
+                int n = 0;
+                CreateSobelKernel(n, ref Kx, ref Ky);
+                HarrisCornerDetection(Kx, Ky);
+
+            }
+
             else
             {
                 if (ErosionRadio.Checked)
@@ -789,8 +799,8 @@ namespace INFOIBV
         void ApplyEdgeDetection()
         {
             // 
-            int[,] Hx = new int[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
-            int[,] Hy = new int[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
+            float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
+            float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
 
             int halfboxsize = Hx.GetLength(0) / 2;
@@ -820,10 +830,10 @@ namespace INFOIBV
             toOutputBitmap();
         }
 
-        int CalculateNewColor(int x, int y, int[,] matrix, int halfBoxSize, bool divideByTotal = true)
+        float CalculateNewColor(int x, int y, float[,] matrix, int halfBoxSize, bool divideByTotal = true)
         {
-            int linearColor = 0;
-            int matrixTotal = 0;                // totale waarde van alle weights van de matrix bij elkaar opgeteld
+            float linearColor = 0;
+            float matrixTotal = 0;                // totale waarde van alle weights van de matrix bij elkaar opgeteld
             for (int a = (halfBoxSize * -1); a <= halfBoxSize; a++)
             {
                 for (int b = (halfBoxSize * -1); b <= halfBoxSize; b++)
@@ -839,6 +849,90 @@ namespace INFOIBV
 
             return linearColor;
         }
+
+        
+        void HarrisCornerDetection(float[,] Kx, float[,] Ky)
+        {
+            List<drawPoint> corners = new List<drawPoint>();
+            Dictionary<drawPoint, float> qvalues = new Dictionary<drawPoint, float>();
+
+            // 
+            //float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
+            //float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
+
+
+            int halfboxsize = Kx.GetLength(0) / 2;
+
+            for (int u = halfboxsize; u < InputImage.Size.Width - halfboxsize; u++)
+            {
+                for (int v = halfboxsize; v < InputImage.Size.Height - halfboxsize; v++)
+                {
+                    double Ix = CalculateNewColor(u, v, Kx, halfboxsize, false) / 8; //apply Kx to the image pixel
+                    double Iy = CalculateNewColor(u, v, Ky, halfboxsize, false) / 8; //apply Ky to the image pixel
+
+
+                    //int edgeStrength = (int)Math.Sqrt(Ix * Ix + Iy * Iy); //calculate edgestrength by calculating the length of vector [Hx, Hy]
+                    double A = Ix * Ix;
+                    double B = Iy * Iy;
+                    double C = Ix * Iy;
+
+                    double traceM = A + B;
+                    double squareRoot = Math.Sqrt(A * A - 2 * A * B + B * B + 4 * C * C);
+                    double lambda1 =  (0.5 * (traceM + squareRoot));
+                    double lambda2 =  (0.5 * (traceM - squareRoot));
+
+                    float alfa = 0.03f;
+
+                    double Quv = (A * B - C * C) - (alfa * traceM * traceM);
+
+
+                    int ValQuv = 255;
+                    //corners.Add(new drawPoint(u))
+                    if(Quv >= 0)
+                    {
+                        ValQuv = 0;
+                        //corners.Add(new drawPoint(u, v));
+                        //qvalues.Add(new drawPoint(u, v), Quv);
+                       
+                    }
+                    //int ValQuv = clamp((int)Quv);
+                    newImage[u, v] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
+                    Console.WriteLine(Quv);
+
+                }
+                progressBar.PerformStep();
+            }
+            toOutputBitmap();
+            //drawPoint[] cornerArray = corners.ToArray();
+            //kernelInput.Text = WritedrawPointArr(cornerArray);
+            //BoundaryToOutput(cornerArray);
+        }
+
+
+
+        //Creating Sobel kernel of odd size > 1 of arbitrary size
+        //Copied from: https://stackoverflow.com/questions/9567882/sobel-filter-kernel-of-large-size/41065243#41065243
+        public static void CreateSobelKernel(int n, ref float[,] Kx, ref float[,] Ky)
+        {
+            int side = n * 2 + 3;
+            Kx = new float[side, side];
+            Ky = new float[side, side];
+            int halfSide = side / 2;
+            for (int i = 0; i < side; i++)
+            {
+                int k = (i <= halfSide) ? (halfSide + i) : (side + halfSide - i - 1);
+                for (int j = 0; j < side; j++)
+                {
+                    if (j < halfSide)
+                        Kx[i,j] = Ky[j,i] = j - k;
+                    else if (j > halfSide)
+                        Kx[i,j] = Ky[j,i] = k - (side - j - 1);
+                    else
+                        Kx[i,j] = Ky[j,i] = 0;
+                }
+            }
+        }
+
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
