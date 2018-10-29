@@ -63,6 +63,10 @@ namespace INFOIBV
                 kernelInput.Text = WritedrawPointArr(boundary);
                 BoundaryToOutput(boundary);
             }
+            else if (regionLabelRadio.Checked)
+            {
+                RegionLabeling();
+            }
             else
             {
                 if (ErosionRadio.Checked)
@@ -86,6 +90,8 @@ namespace INFOIBV
                     ApplyEdgeDetection();
                 else if (greyscaleRadio.Checked)
                     ApplyGreyscale();
+                else if (preprocessingRadio.Checked)
+                    PreprocessingPipeline();
 
 
                 toOutputBitmap();
@@ -674,7 +680,153 @@ namespace INFOIBV
             else ApplyErosionDilationFilter(true);
         }
 
+        void PreprocessingPipeline()
+        {
+            ApplyGreyscale();
+            Color[,] pipelineImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    pipelineImage[x, y] = newImage[x, y];
+                }
+            }
+            String[] inputName = imageFileName1.Text.Split(new string[] { "." }, StringSplitOptions.None);
+            kernelInput.Text = "0 0 0\r\n0 0 0\r\n0 0 0";
+            for (int g = 70; g <= 80; g++)
+            {
+                RightAsInput.Checked = false;
+                resetForApply();
+                for (int x = 0; x < InputImage.Size.Width; x++)
+                {
+                    for (int y = 0; y < InputImage.Size.Height; y++)
+                    {
+                        Image[x, y] = pipelineImage[x, y];
+                    }
+                }
+                ApplyThresholdFilter(g);
+                RightAsInput.Checked = true;
+                resetForApply();
+                ApplyOpeningClosingFilter(true);
+                toOutputBitmap();
+                OutputImage.Save(inputName[0] + " t" + g + ".bmp");
+            }
+        }
 
+        void RegionLabeling()
+        {
+            // Region labeling maakt een nieuwe array aan die een border van 1 pixel meer heeft vergeleken met de originele afbeelding
+            // Dit is om te zorgen dat de calculaties geen error geven bij foreground check van de afbeelding aan de randen
+            int[,] label = new int[InputImage.Size.Width + 2, InputImage.Size.Height + 2];
+            int labelIndex = 1;
+            bool isLabeled = false;
+            List<drawPoint> conflict = new List<drawPoint>();
+            for (int x = 1; x < InputImage.Size.Width + 1; x++)
+            {
+                for (int y = 1; y < InputImage.Size.Height + 1; y++)
+                {
+                    // Per foreground pixel wordt gekeken of een van de omringende pixels al is gelabeld.
+                    // Zo ja, dan krijgt de pixel deze waarde. Mocht dit meerdere keren gebeuren, dan wordt er een conflict genoteerd.
+                    // Zo niet, dan wordt een nieuwe waarde aangemaakt en krijgt de pixel deze waarde.
+                    if (Image[x - 1, y - 1].R == 255)
+                    {
+                        isLabeled = false;
+                        if (label[x - 1, y - 1] != 0)
+                        {
+                            label[x, y] = label[x - 1, y - 1];
+                            isLabeled = true;
+                        }
+                        if (label[x, y - 1] != 0)
+                        {
+                            if (isLabeled == true && label[x, y] != label[x, y - 1] && !conflict.Contains(new drawPoint(x, y)))
+                            {
+                                conflict.Add(new drawPoint(x, y));
+                            }
+                            label[x, y] = label[x, y - 1];
+                            isLabeled = true;
+                        }
+                        if (label[x + 1, y - 1] != 0)
+                        {
+                            if (isLabeled && label[x, y] != label[x + 1, y - 1] && !conflict.Contains(new drawPoint(x, y)))
+                            {
+                                conflict.Add(new drawPoint(x, y));
+                            }
+                            label[x, y] = label[x + 1, y - 1];
+                            isLabeled = true;
+                        }
+                        if (label[x - 1, y] != 0)
+                        {
+                            if (isLabeled && label[x, y] != label[x - 1, y] && !conflict.Contains(new drawPoint(x, y)))
+                            {
+                                conflict.Add(new drawPoint(x, y));
+                            }
+                            label[x, y] = label[x - 1, y];
+                            isLabeled = true;
+                        }
+                        if (isLabeled == false)
+                        {
+                            label[x, y] = labelIndex;
+                            labelIndex++;
+                        }
+                    }
+                }
+            }
+
+            // Daarna wordt gekeken welke labels hetzelfde figuur omschrijven (en dus samengevoegd kunnen worden)
+            // Alle conflictpunten worden nagelopen. Als er pixels worden ontdekt die aan elkaar grenzen, worden ze genoteerd hetzelfde te zijn.
+            bool[,] connection = new bool[labelIndex, labelIndex];
+            foreach (var ele in conflict)
+            {
+                for (int i = -1; i < 1; i++)
+                {
+                    for (int j = -1; j < 1; j++)
+                    {
+                        if (label[ele.X + i, ele.Y + j] != 0)
+                        {
+                            connection[label[ele.X, ele.Y], label[ele.X + i, ele.Y + j]] = true;
+                            connection[label[ele.X + i, ele.Y + j], label[ele.X, ele.Y]] = true;
+                        }
+                    }
+                }
+            }
+
+            // Deze array schrijft nieuwe labels om naar hun kleinst mogelijke waarde.
+            int[] newLabel = new int[labelIndex];
+            newLabel[0] = 0;
+            for (int i = 1; i < newLabel.Length; i++)
+            {
+                newLabel[i] = i;
+                for (int j = 1; j < newLabel.Length; j++)
+                {
+                    if (connection[i, j] && j < newLabel[i])
+                    {
+                        newLabel[i] = j;
+                    }
+                }
+            }
+
+            // Hier worden de labels in de afbeelding daadwerkelijk overgeschreven.
+            // Ook wordt per new label bijgehouden hoeveel pixels die waarde hebben. 
+            // Dit kan later gebruikt worden om te kijken of een region groot genoeg is om een hand te kunnen zijn.
+            int[] newLabelCount = new int[labelIndex];
+            for (int x = 1; x < InputImage.Size.Width + 1; x++)
+            {
+                for (int y = 1; y < InputImage.Size.Height + 1; y++)
+                {
+                    label[x, y] = newLabel[label[x, y]];
+                    newLabelCount[label[x, y]]++;
+
+                    int newColor = label[x, y] * 25;
+                    Color updatedColor = Color.FromArgb(newColor, newColor, newColor);
+                    newImage[x - 1, y - 1] = updatedColor;
+                }
+            }
+
+            for (int i = 0; i < newLabelCount.Length; i++)
+            {
+                Console.WriteLine("Label " + i + ": " + newLabelCount[i]);
+            }
+        }
 
 
 
@@ -888,7 +1040,5 @@ namespace INFOIBV
         {
             thresholdValue.Text = thresholdTrackbar.Value.ToString();
         }
-
-
     }
 }
