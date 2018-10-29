@@ -24,12 +24,16 @@ namespace INFOIBV
             InitializeComponent();
         }
 
-        private void LoadImageButton1_Click(object sender, EventArgs e) { LoadImage(); }
+        private void LoadImageButton1_Click(object sender, EventArgs e) { LoadAndCropImage(); }
 
 
 
-        void LoadImage()
+        void LoadAndCropImage()
         {
+            int startx = 14;
+            int starty = 0;
+            int startWidth = 454;
+            int startHeight = 262;
 
             if (openImageDialog.ShowDialog() == DialogResult.OK)             // Open File Dialog
             {
@@ -39,9 +43,15 @@ namespace INFOIBV
 
                 if (InputImage != null) InputImage.Dispose();               // Reset image
                 InputImage = new Bitmap(file);                              // Create new Bitmap from file
-                if (InputImage.Size.Height <= 0 || InputImage.Size.Width <= 0 ||
-                    InputImage.Size.Height > 512 || InputImage.Size.Width > 512) // Dimension check
-                    MessageBox.Show("Error in image dimensions (have to be > 0 and <= 512)");
+
+                resetForApply();
+                Color[,] croppedImage = CutSubImageBox(Image, startx, starty, startWidth, startHeight);
+                InputImage = new Bitmap(startWidth, startHeight);
+                for (int x = 0; x < startWidth; x++)
+                    for (int y = 0; y < startHeight; y++)
+                    {
+                        InputImage.SetPixel(x, y, croppedImage[x, y]);
+                    }
                 pictureBox1.Image = (Image)InputImage;
             }
         }
@@ -704,7 +714,7 @@ namespace INFOIBV
                 {
                     Color currentColor = Image[u, v];
                     if (previousColor == backGrC && currentColor != backGrC)
-                        returnValue = TransFgBg(backGrC, returnValue, u, v);
+                        returnValue = TraceFigureOutline(backGrC, returnValue, u, v);
                 }
 
             return returnValue.ToArray();
@@ -716,7 +726,7 @@ namespace INFOIBV
         /// Handles the case that there is a transition from background to foreground in the image, and traces the figure found.
         /// </summary>
         /// <param name="backgrC">background color</param>
-        List<drawPoint> TransFgBg(Color backgrC, List<drawPoint> ContourPixels, int u, int v)
+        List<drawPoint> TraceFigureOutline(Color backgrC, List<drawPoint> ContourPixels, int u, int v)
         {
 
             if (isContourPix(backgrC, u, v))
@@ -732,7 +742,7 @@ namespace INFOIBV
                             if (u + x >= 0 && v + y >= 0 && u + x < InputImage.Width && v + y < InputImage.Height)
                                 if (!ContourPixels.Contains(new drawPoint(u + x, v + y)))
                                 {
-                                    TransFgBg(backgrC, ContourPixels, u + x, v + y);
+                                    TraceFigureOutline(backgrC, ContourPixels, u + x, v + y);
                                 }
                         }
                 }
@@ -923,23 +933,51 @@ namespace INFOIBV
         }
 
 
-
+        /// <summary>
+        /// crops the image to a certain size. The pixel selected lands in the left upper corner
+        /// </summary>
+        /// <param name="fullImage">input image</param>
+        /// <param name="u">x pixel for the left upper corner of new image</param>
+        /// <param name="v">y pixel for the left upper corner of new image</param>
+        /// <param name="width">new width</param>
+        /// <param name="height">new height</param>
+        /// <returns></returns>
         Color[,] CutSubImageBox(Color[,] fullImage, int u, int v, int width, int height)
         {
-            int halfHeight = height / 2;
-            int halfWidth = width / 2;
 
-            Color[,] subImage = new Color[width + 1, height + 1];
-            for( int x = -halfWidth; x <= halfWidth; x++)
-                for (int y = -halfHeight; y <= halfHeight; y++ )
+            Color[,] subImage = new Color[width, height];
+            for( int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++ )
                 {
-                    subImage[x + halfWidth, y + halfHeight] = fullImage[u + x, v + y];
+                    subImage[x, y] = fullImage[u + x, v + y];
                 }
             return subImage;
         }
 
 
 
+
+
+
+        drawPoint[] RegionLabeling()
+        {
+            Color backGrC = Color.FromArgb(255, 0, 0, 0);
+            //Color foreGrC = Color.FromArgb(255, 255, 255, 255);
+
+            Color previousColor = backGrC;
+
+            List<drawPoint> returnValue = new List<drawPoint>();
+
+            for (int v = 0; v < InputImage.Height; v++)
+                for (int u = 0; u < InputImage.Width; u++) //x moet 'snelst' doorlopen
+                {
+                    Color currentColor = Image[u, v];
+                    if (previousColor == backGrC && currentColor != backGrC)
+                        returnValue = TraceFigureOutline(backGrC, returnValue, u, v);
+                }
+
+            return returnValue.ToArray();
+        }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
