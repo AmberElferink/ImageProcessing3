@@ -63,10 +63,6 @@ namespace INFOIBV
                 kernelInput.Text = WritedrawPointArr(boundary);
                 BoundaryToOutput(boundary);
             }
-            else if (regionLabelRadio.Checked)
-            {
-                RegionLabeling();
-            }
             else
             {
                 if (ErosionRadio.Checked)
@@ -92,6 +88,8 @@ namespace INFOIBV
                     ApplyGreyscale();
                 else if (preprocessingRadio.Checked)
                     PreprocessingPipeline();
+                else if (regionLabelRadio.Checked)
+                    RegionLabeling();
 
 
                 toOutputBitmap();
@@ -728,7 +726,7 @@ namespace INFOIBV
                     // Per foreground pixel wordt gekeken of een van de omringende pixels al is gelabeld.
                     // Zo ja, dan krijgt de pixel deze waarde. Mocht dit meerdere keren gebeuren, dan wordt er een conflict genoteerd.
                     // Zo niet, dan wordt een nieuwe waarde aangemaakt en krijgt de pixel deze waarde.
-                    if (Image[x - 1, y - 1].R == 255)
+                    if (Image[x - 1, y - 1].R == 0)
                     {
                         isLabeled = false;
                         if (label[x - 1, y - 1] != 0)
@@ -816,7 +814,7 @@ namespace INFOIBV
                     label[x, y] = newLabel[label[x, y]];
                     newLabelCount[label[x, y]]++;
 
-                    int newColor = label[x, y] * 25;
+                    int newColor = label[x, y] * 10;
                     Color updatedColor = Color.FromArgb(newColor, newColor, newColor);
                     newImage[x - 1, y - 1] = updatedColor;
                 }
