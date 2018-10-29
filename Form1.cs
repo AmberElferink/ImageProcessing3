@@ -95,8 +95,7 @@ namespace INFOIBV
                 else if (edgeDetection.Checked)
                     ApplyEdgeDetection();
 
-
-                toOutputBitmap();
+               toOutputBitmap();
 
             }
         }
@@ -856,7 +855,6 @@ namespace INFOIBV
             List<drawPoint> corners = new List<drawPoint>();
             Dictionary<drawPoint, float> qvalues = new Dictionary<drawPoint, float>();
 
-            // 
             //float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
             //float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
@@ -887,15 +885,9 @@ namespace INFOIBV
 
 
                     int ValQuv = 255;
-                    //corners.Add(new drawPoint(u))
                     if(Quv >= 0)
-                    {
-                        ValQuv = 0;
-                        //corners.Add(new drawPoint(u, v));
-                        //qvalues.Add(new drawPoint(u, v), Quv);
-                       
-                    }
-                    //int ValQuv = clamp((int)Quv);
+                        ValQuv = 0;                      
+
                     newImage[u, v] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
                     Console.WriteLine(Quv);
 
@@ -903,9 +895,6 @@ namespace INFOIBV
                 progressBar.PerformStep();
             }
             toOutputBitmap();
-            //drawPoint[] cornerArray = corners.ToArray();
-            //kernelInput.Text = WritedrawPointArr(cornerArray);
-            //BoundaryToOutput(cornerArray);
         }
 
 
@@ -933,6 +922,21 @@ namespace INFOIBV
             }
         }
 
+
+
+        Color[,] CutSubImageBox(Color[,] fullImage, int u, int v, int width, int height)
+        {
+            int halfHeight = height / 2;
+            int halfWidth = width / 2;
+
+            Color[,] subImage = new Color[width + 1, height + 1];
+            for( int x = -halfWidth; x <= halfWidth; x++)
+                for (int y = -halfHeight; y <= halfHeight; y++ )
+                {
+                    subImage[x + halfWidth, y + halfHeight] = fullImage[u + x, v + y];
+                }
+            return subImage;
+        }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
