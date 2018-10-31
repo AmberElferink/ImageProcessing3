@@ -728,6 +728,7 @@ namespace INFOIBV
                     // Zo niet, dan wordt een nieuwe waarde aangemaakt en krijgt de pixel deze waarde.
                     if (Image[x - 1, y - 1].R == 0)
                     {
+                        int newColor = 0;
                         isLabeled = false;
                         if (label[x - 1, y - 1] != 0)
                         {
@@ -739,6 +740,8 @@ namespace INFOIBV
                             if (isLabeled == true && label[x, y] != label[x, y - 1] && !conflict.Contains(new drawPoint(x, y)))
                             {
                                 conflict.Add(new drawPoint(x, y));
+                                Console.WriteLine("Conflict detected at [" + x + ", " + y + "].");
+                                newColor = 255;
                             }
                             label[x, y] = label[x, y - 1];
                             isLabeled = true;
@@ -748,6 +751,8 @@ namespace INFOIBV
                             if (isLabeled && label[x, y] != label[x + 1, y - 1] && !conflict.Contains(new drawPoint(x, y)))
                             {
                                 conflict.Add(new drawPoint(x, y));
+                                Console.WriteLine("Conflict detected at [" + x + ", " + y + "].");
+                                newColor = 255;
                             }
                             label[x, y] = label[x + 1, y - 1];
                             isLabeled = true;
@@ -757,6 +762,8 @@ namespace INFOIBV
                             if (isLabeled && label[x, y] != label[x - 1, y] && !conflict.Contains(new drawPoint(x, y)))
                             {
                                 conflict.Add(new drawPoint(x, y));
+                                Console.WriteLine("Conflict detected at [" + x + ", " + y + "].");
+                                newColor = 255;
                             }
                             label[x, y] = label[x - 1, y];
                             isLabeled = true;
@@ -766,10 +773,12 @@ namespace INFOIBV
                             label[x, y] = labelIndex;
                             labelIndex++;
                         }
+                        Color updatedColor = Color.FromArgb(newColor, 0, 0);
+                        newImage[x - 1, y - 1] = updatedColor;
                     }
                 }
             }
-
+            
             // Daarna wordt gekeken welke labels hetzelfde figuur omschrijven (en dus samengevoegd kunnen worden)
             // Alle conflictpunten worden nagelopen. Als er pixels worden ontdekt die aan elkaar grenzen, worden ze genoteerd hetzelfde te zijn.
             bool[,] connection = new bool[labelIndex, labelIndex];
@@ -779,10 +788,13 @@ namespace INFOIBV
                 {
                     for (int j = -1; j < 1; j++)
                     {
-                        if (label[ele.X + i, ele.Y + j] != 0)
+                        int label1 = label[ele.X, ele.Y];
+                        int label2 = label[ele.X + i, ele.Y + j];
+                        if (label2 != 0 && (!connection[label1, label2] || !connection[label2, label1]))
                         {
-                            connection[label[ele.X, ele.Y], label[ele.X + i, ele.Y + j]] = true;
-                            connection[label[ele.X + i, ele.Y + j], label[ele.X, ele.Y]] = true;
+                            connection[label1, label2] = true;
+                            connection[label2, label1] = true;
+                            Console.WriteLine("Label " + label1 + " and label " + label2 + " describe the same region.");
                         }
                     }
                 }
@@ -794,14 +806,34 @@ namespace INFOIBV
             for (int i = 1; i < newLabel.Length; i++)
             {
                 newLabel[i] = i;
+            }
+            for (int i = 1; i < newLabel.Length; i++)
+            {
+                List<int> visited = new List<int>();
+                newLabel[i] = smallestRegion(i, newLabel, visited, connection);
+            }
+
+            /*
+            for (int i = 1; i < newLabel.Length; i++)
+            {
                 for (int j = 1; j < newLabel.Length; j++)
                 {
-                    if (connection[i, j] && j < newLabel[i])
+                    if (connection[i, j])
                     {
-                        newLabel[i] = j;
+                        if (newLabel[j] < newLabel[i])
+                        {
+                            newLabel[i] = newLabel[j];
+                            Console.WriteLine("Label " + i + " is now mapped to label " + newLabel[j] + " from label " + j + ".");
+                        }
+                        if (newLabel[i] < newLabel[j])
+                        {
+                            newLabel[j] = newLabel[i];
+                            Console.WriteLine("Label " + j + " is now mapped to label " + newLabel[i] + " from label " + i + ".");
+                        }
                     }
                 }
             }
+            */
 
             // Hier worden de labels in de afbeelding daadwerkelijk overgeschreven.
             // Ook wordt per new label bijgehouden hoeveel pixels die waarde hebben. 
@@ -815,6 +847,10 @@ namespace INFOIBV
                     newLabelCount[label[x, y]]++;
 
                     int newColor = label[x, y] * 10;
+                    if (label[x, y] == 0)
+                    {
+                        newColor = 255;
+                    }
                     Color updatedColor = Color.FromArgb(newColor, newColor, newColor);
                     newImage[x - 1, y - 1] = updatedColor;
                 }
@@ -826,7 +862,25 @@ namespace INFOIBV
             }
         }
 
-
+        // Per label input wordt nagelopen of de andere labels er aan grenzen en of die nog niet zijn bezocht
+        // Zo ja, dan wordt er recursief gekeken of andere labels een lagere newLabel waarde hebben dan de huidige
+        // Als dat het geval is, dan wordt deze geupdatet
+        int smallestRegion(int input, int[] newLabel, List<int> visited, bool[,] connection)
+        {
+            for (int i = 1; i < newLabel.Length; i++)
+            {
+                if (!visited.Contains(i) && (connection[i, input] || connection[input, i]))
+                {
+                    visited.Add(i);
+                    int compare = smallestRegion(i, newLabel, visited, connection);
+                    if (compare < newLabel[input])
+                    {
+                        return compare;
+                    }
+                }
+            }
+            return newLabel[input];
+        }
 
 
 
