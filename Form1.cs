@@ -30,10 +30,11 @@ namespace INFOIBV
 
         void LoadAndCropImage()
         {
-            int startx = 14;
+            
+            int startx = 0;
             int starty = 0;
-            int startWidth = 454;
-            int startHeight = 262;
+            int startWidth = 100;
+            int startHeight = 100;
 
             if (openImageDialog.ShowDialog() == DialogResult.OK)             // Open File Dialog
             {
@@ -46,9 +47,9 @@ namespace INFOIBV
 
                 resetForApply();
                 Color[,] croppedImage = CutSubImageBox(Image, startx, starty, startWidth, startHeight);
-                InputImage = new Bitmap(startWidth, startHeight);
-                for (int x = 0; x < startWidth; x++)
-                    for (int y = 0; y < startHeight; y++)
+                InputImage = new Bitmap(croppedImage.GetLength(0), croppedImage.GetLength(1));
+                for (int x = 0; x < croppedImage.GetLength(0); x++)
+                    for (int y = 0; y < croppedImage.GetLength(1); y++)
                     {
                         InputImage.SetPixel(x, y, croppedImage[x, y]);
                     }
@@ -843,9 +844,9 @@ namespace INFOIBV
         {
             float linearColor = 0;
             float matrixTotal = 0;                // totale waarde van alle weights van de matrix bij elkaar opgeteld
-            for (int a = (halfBoxSize * -1); a <= halfBoxSize; a++)
+            for (int a = -halfBoxSize; a <= halfBoxSize; a++)
             {
-                for (int b = (halfBoxSize * -1); b <= halfBoxSize; b++)
+                for (int b = -halfBoxSize; b <= halfBoxSize; b++)
                 {
                     linearColor = linearColor + (Image[x + a, y + b].R * matrix[a + halfBoxSize, b + halfBoxSize]);
                     // weight van filter wordt per kernel pixel toegepast op image pixel
@@ -862,21 +863,19 @@ namespace INFOIBV
         
         void HarrisCornerDetection(float[,] Kx, float[,] Ky)
         {
-            List<drawPoint> corners = new List<drawPoint>();
-            Dictionary<drawPoint, float> qvalues = new Dictionary<drawPoint, float>();
+            int[,] Qvalues = new int[InputImage.Size.Width, InputImage.Size.Height];
 
-            //float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
-            //float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
-
+            float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
+            float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
             int halfboxsize = Kx.GetLength(0) / 2;
 
-            for (int u = halfboxsize; u < InputImage.Size.Width - halfboxsize; u++)
+            for (int v = halfboxsize; v < InputImage.Size.Height - halfboxsize; v++) 
             {
-                for (int v = halfboxsize; v < InputImage.Size.Height - halfboxsize; v++)
+                for (int u = halfboxsize; u < InputImage.Size.Width - halfboxsize; u++)
                 {
-                    double Ix = CalculateNewColor(u, v, Kx, halfboxsize, false) / 8; //apply Kx to the image pixel
-                    double Iy = CalculateNewColor(u, v, Ky, halfboxsize, false) / 8; //apply Ky to the image pixel
+                    double Ix = CalculateNewColor(u, v, Hx, halfboxsize, false) / 8; //apply Kx to the image pixel
+                    double Iy = CalculateNewColor(u, v, Hy, halfboxsize, false) / 8; //apply Ky to the image pixel
 
 
                     //int edgeStrength = (int)Math.Sqrt(Ix * Ix + Iy * Iy); //calculate edgestrength by calculating the length of vector [Hx, Hy]
@@ -889,24 +888,82 @@ namespace INFOIBV
                     double lambda1 =  (0.5 * (traceM + squareRoot));
                     double lambda2 =  (0.5 * (traceM - squareRoot));
 
-                    float alfa = 0.03f;
+                    float alfa = 0.05f;
 
                     double Quv = (A * B - C * C) - (alfa * traceM * traceM);
 
-
+                        
+                    /*
                     int ValQuv = 255;
                     if(Quv >= 0)
                         ValQuv = 0;                      
 
                     newImage[u, v] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
+                    */
+                    Qvalues[u, v] = (int)Quv;
+            
                     Console.WriteLine(Quv);
 
                 }
                 progressBar.PerformStep();
             }
+
+            int[,] highestQvalues = PickStrongestCorners(Qvalues, 0);
+            ApplyQthreshold(highestQvalues);
             toOutputBitmap();
         }
 
+       int[,] PickStrongestCorners(int[,] Qvalues, int boxsize)
+        {
+            drawPoint startingPoint = new drawPoint(-1, -1);
+
+            int halfBoxSize = boxsize / 2;
+            for (int x = halfBoxSize; x < Qvalues.GetLength(0) - halfBoxSize; x++) //loop through the image
+            {
+                for (int y = halfBoxSize; y < Qvalues.GetLength(1) - halfBoxSize; y++) 
+                {
+                    int highestQ = 0;
+                    drawPoint prevHighestQ = startingPoint;
+
+                    for (int a = -halfBoxSize; a <= halfBoxSize; a++) //loop through the pixels around the pixel.
+                    {
+                        for (int b = -halfBoxSize; b <= halfBoxSize; b++)
+                        {
+                           
+                            if(Qvalues[x + a, x + b] >= highestQ)
+                            {
+                                highestQ = Qvalues[x + a, x + b];             //highest Q value is updated
+                               
+
+                                if (prevHighestQ != startingPoint)
+                                    Qvalues[prevHighestQ.X, prevHighestQ.Y] = -1; //previous less strong corner is removed 
+
+                                prevHighestQ = new drawPoint(x + a, x + b);   //this point is set as previoushighest point for next round.
+                            }
+                        }
+                    }
+                }
+            }
+            return Qvalues;
+        }
+
+        void ApplyQthreshold(int[,] Qvalues)
+        {
+            for(int x = 0; x < Qvalues.GetLength(0); x++)
+                for(int y = 0; y < Qvalues.GetLength(1); y++)
+                {
+                    int ValQuv = 255;
+                    
+                    if (Qvalues[x,y] >= 0)
+                    {
+                        ValQuv = 0;
+                        Console.WriteLine(Qvalues[x, y]);
+                    }
+                        
+
+                    newImage[x, y] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
+                }
+        }
 
 
         //Creating Sobel kernel of odd size > 1 of arbitrary size
@@ -944,6 +1001,10 @@ namespace INFOIBV
         /// <returns></returns>
         Color[,] CutSubImageBox(Color[,] fullImage, int u, int v, int width, int height)
         {
+            if (width > fullImage.GetLength(0))
+                return fullImage;
+            if (height > fullImage.GetLength(1))
+                return fullImage;
 
             Color[,] subImage = new Color[width, height];
             for( int x = 0; x < width; x++)
@@ -975,7 +1036,6 @@ namespace INFOIBV
                     if (previousColor == backGrC && currentColor != backGrC)
                         returnValue = TraceFigureOutline(backGrC, returnValue, u, v);
                 }
-
             return returnValue.ToArray();
         }
 
