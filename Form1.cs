@@ -863,7 +863,10 @@ namespace INFOIBV
         
         void HarrisCornerDetection(float[,] Kx, float[,] Ky)
         {
-            int[,] Qvalues = new int[InputImage.Size.Width, InputImage.Size.Height];
+            
+            double[,] Avalues = new double[InputImage.Size.Width, InputImage.Size.Height];
+            double[,] Bvalues = new double[InputImage.Size.Width, InputImage.Size.Height];
+            double[,] Cvalues = new double[InputImage.Size.Width, InputImage.Size.Height];
 
             float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
             float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
@@ -879,41 +882,142 @@ namespace INFOIBV
 
 
                     //int edgeStrength = (int)Math.Sqrt(Ix * Ix + Iy * Iy); //calculate edgestrength by calculating the length of vector [Hx, Hy]
-                    double A = Ix * Ix;
-                    double B = Iy * Iy;
-                    double C = Ix * Iy;
+                    Avalues[u,v] = Ix * Ix;
+                    Bvalues[u,v] = Iy * Iy;
+                    Cvalues[u,v] = Ix * Iy;
+
+                }
+                progressBar.PerformStep();
+            }
+            Avalues = ApplyGaussianFilter(Avalues, 1.1, 5);
+            Bvalues = ApplyGaussianFilter(Bvalues, 1.1, 5);
+            Cvalues = ApplyGaussianFilter(Cvalues, 1.1, 5);
+            double[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues);
+            double[,] highestQvalues = PickStrongestCorners(Qvalues, 50);
+            ApplyQthreshold(highestQvalues);
+            toOutputBitmap();
+        }
+
+        
+
+        double[,] CalculateQvalues(double[,] Avalues, double[,] Bvalues, double[,] Cvalues)
+        {
+            double[,] Qvalues = new double[InputImage.Size.Width, InputImage.Size.Height];
+
+            for (int x = 0; x < Avalues.GetLength(0); x++)
+            {
+                for(int y = 0; y < Avalues.GetLength(1); y++)
+                {
+                    double A = Avalues[x, y];
+                    double B = Bvalues[x, y];
+                    double C = Cvalues[x, y];
 
                     double traceM = A + B;
                     double squareRoot = Math.Sqrt(A * A - 2 * A * B + B * B + 4 * C * C);
-                    double lambda1 =  (0.5 * (traceM + squareRoot));
-                    double lambda2 =  (0.5 * (traceM - squareRoot));
+                    double lambda1 = (0.5 * (traceM + squareRoot));
+                    double lambda2 = (0.5 * (traceM - squareRoot));
 
                     float alfa = 0.05f;
 
                     double Quv = (A * B - C * C) - (alfa * traceM * traceM);
 
-                        
-                    /*
-                    int ValQuv = 255;
-                    if(Quv >= 0)
-                        ValQuv = 0;                      
-
-                    newImage[u, v] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
-                    */
-                    Qvalues[u, v] = (int)Quv;
-            
-                    Console.WriteLine(Quv);
-
+                    Qvalues[x, y] = (int)Quv;
                 }
-                progressBar.PerformStep();
             }
-
-            int[,] highestQvalues = PickStrongestCorners(Qvalues, 0);
-            ApplyQthreshold(highestQvalues);
-            toOutputBitmap();
+            return Qvalues;
+            
         }
 
-       int[,] PickStrongestCorners(int[,] Qvalues, int boxsize)
+        float[] Create1DKernel(int boxsize, double sigma, int filterBorder)
+        {
+            float[] kernel = new float[boxsize];
+
+            // berekenen 1D gaussian filter, uit boek pagina 115
+            double sigma2 = sigma * sigma;
+            float countingKernel = 0;
+            for (int j = 0; j < kernel.Length; j++)
+            {
+                double r = filterBorder - j;
+                kernel[j] = (float)Math.Exp(-0.5 * (r * r) / sigma2);
+                countingKernel += kernel[j];
+            }
+            for (int j = 0; j < kernel.Length; j++)
+            {
+                kernel[j] = kernel[j] / countingKernel;
+            }
+            return kernel;
+        }
+
+        private double[,] ApplyGaussianFilter(double[,] valueArray, double sigma, int boxsize)
+        {
+            // input lezen: eerst een double voor de sigma, dan een int voor de kernel size
+            
+            int filterBorder = (boxsize - 1) / 2;                                       //hulpvariabele voor verdere berekeningen
+
+            float[] kernel = Create1DKernel(boxsize, sigma, filterBorder);
+
+            // maak arrays om tijdelijke variabelen in op te slaan
+            float[,] gaussian1DColor = new float[boxsize, boxsize];
+            float[,] gaussian2DColor = new float[boxsize, boxsize];
+            float[,] weight = new float[boxsize, boxsize];
+
+            // verzamel- en telvariabelen
+            float gaussianTotal = 0;
+            float weightTotal = 0;
+            int i = 0;
+
+            double[,] newValueArray = new double[valueArray.GetLength(0), valueArray.GetLength(1)];
+
+
+            //Doorloop de image per pixel
+            for (int x = filterBorder; x < InputImage.Size.Width - filterBorder; x++)
+            {
+                for (int y = filterBorder; y < InputImage.Size.Height - filterBorder; y++)
+                {
+                    gaussianTotal = 0;
+                    weightTotal = 0;
+                    i = 0;
+
+                    // 1D-gaussian wordt eerst horizontaal toegepast. Nieuwe grijswaarden en weights worden in bijbehorende arrays opgeslagen.
+                    for (int a = -filterBorder; a <= filterBorder; a++)
+                    {
+                        i = 0;
+                        for (int b = -filterBorder; b <= filterBorder; b++)
+                        {
+                            gaussian1DColor[a + filterBorder, b + filterBorder] = ((float)valueArray[x + a, y + b] * kernel[i]);
+                            weight[a + filterBorder, b + filterBorder] = kernel[i];
+                            i++;
+                        }
+                    }
+
+                    // 1D-gaussian wordt opnieuw toegepast, nu verticaal.
+                    // Grijswaarden uit de eerste keer worden gebruikt om de nieuwe grijswaarden te maken, en deze worden bij elkaar opgeteld.
+                    // Weights worden ook herberekend en bij elkaar opgeteld.
+                    i = 0;
+                    for (int a = -filterBorder; a <= filterBorder; a++)
+                    {
+                        for (int b = -filterBorder; b <= filterBorder; b++)
+                        {
+                            gaussian2DColor[a + filterBorder, b + filterBorder] = (gaussian1DColor[a + filterBorder, b + filterBorder] * kernel[i]);
+                            gaussianTotal = gaussianTotal + gaussian2DColor[a + filterBorder, b + filterBorder];
+                            weight[a + filterBorder, b + filterBorder] = weight[a + filterBorder, b + filterBorder] * kernel[i];
+                            weightTotal = weightTotal + weight[a + filterBorder, b + filterBorder];
+                        }
+                        i++;
+                    }
+
+
+                    // Totale som grijswaarden delen door totale weights om uiteindelijke grijswaarde te krijgen.
+                    int gaussianColor = (int)(gaussianTotal / weightTotal);
+
+                    newValueArray[x, y] = gaussianColor;
+                }
+            }
+            return newValueArray;
+        }
+
+
+        double[,] PickStrongestCorners(double[,] Qvalues, int boxsize)
         {
             drawPoint startingPoint = new drawPoint(-1, -1);
 
@@ -922,15 +1026,14 @@ namespace INFOIBV
             {
                 for (int y = halfBoxSize; y < Qvalues.GetLength(1) - halfBoxSize; y++) 
                 {
-                    int highestQ = 0;
+                    double highestQ = 0;
                     drawPoint prevHighestQ = startingPoint;
 
                     for (int a = -halfBoxSize; a <= halfBoxSize; a++) //loop through the pixels around the pixel.
                     {
                         for (int b = -halfBoxSize; b <= halfBoxSize; b++)
-                        {
-                           
-                            if(Qvalues[x + a, x + b] >= highestQ)
+                        {                           
+                            if(Qvalues[x + a, x + b] > highestQ)
                             {
                                 highestQ = Qvalues[x + a, x + b];             //highest Q value is updated
                                
@@ -947,17 +1050,16 @@ namespace INFOIBV
             return Qvalues;
         }
 
-        void ApplyQthreshold(int[,] Qvalues)
+        void ApplyQthreshold(double[,] Qvalues)
         {
             for(int x = 0; x < Qvalues.GetLength(0); x++)
                 for(int y = 0; y < Qvalues.GetLength(1); y++)
                 {
                     int ValQuv = 255;
                     
-                    if (Qvalues[x,y] >= 0)
+                    if (Qvalues[x,y] > 100)
                     {
                         ValQuv = 0;
-                        Console.WriteLine(Qvalues[x, y]);
                     }
                         
 
