@@ -901,7 +901,7 @@ namespace INFOIBV
                     newImage[u, v] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
                     */
                     Qvalues[u, v] = (int)Quv;
-            
+                    if(Quv > 0)
                     Console.WriteLine(Quv);
 
                 }
@@ -915,6 +915,7 @@ namespace INFOIBV
 
        int[,] PickStrongestCorners(int[,] Qvalues, int boxsize)
         {
+            int[,] strongestQvalues = new int[Qvalues.GetLength(0), Qvalues.GetLength(1)];
             drawPoint startingPoint = new drawPoint(-1, -1);
 
             int halfBoxSize = boxsize / 2;
@@ -923,28 +924,25 @@ namespace INFOIBV
                 for (int y = halfBoxSize; y < Qvalues.GetLength(1) - halfBoxSize; y++) 
                 {
                     int highestQ = 0;
-                    drawPoint prevHighestQ = startingPoint;
+                    drawPoint HighestQPoint = startingPoint;
 
                     for (int a = -halfBoxSize; a <= halfBoxSize; a++) //loop through the pixels around the pixel.
                     {
                         for (int b = -halfBoxSize; b <= halfBoxSize; b++)
                         {
                            
-                            if(Qvalues[x + a, x + b] >= highestQ)
+                            if(Qvalues[x + a, x + b] > highestQ)
                             {
                                 highestQ = Qvalues[x + a, x + b];             //highest Q value is updated
-                               
-
-                                if (prevHighestQ != startingPoint)
-                                    Qvalues[prevHighestQ.X, prevHighestQ.Y] = -1; //previous less strong corner is removed 
-
-                                prevHighestQ = new drawPoint(x + a, x + b);   //this point is set as previoushighest point for next round.
+                                HighestQPoint = new drawPoint(x + a, x + b);
                             }
                         }
                     }
+                    if (HighestQPoint != startingPoint)
+                        strongestQvalues[HighestQPoint.X, HighestQPoint.Y] = highestQ;
                 }
             }
-            return Qvalues;
+            return strongestQvalues;
         }
 
         void ApplyQthreshold(int[,] Qvalues)
@@ -954,7 +952,7 @@ namespace INFOIBV
                 {
                     int ValQuv = 255;
                     
-                    if (Qvalues[x,y] >= 0)
+                    if (Qvalues[x,y] > 100)
                     {
                         ValQuv = 0;
                         Console.WriteLine(Qvalues[x, y]);
