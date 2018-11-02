@@ -30,11 +30,16 @@ namespace INFOIBV
 
         void LoadAndCropImage()
         {
-            
+            /*cornerDetection test
             int startx = 0;
             int starty = 0;
             int startWidth = 100;
             int startHeight = 100;
+            */
+            int startx = 20;
+            int starty = 0;
+            int startWidth = 458;
+            int startHeight = 264;
 
             if (openImageDialog.ShowDialog() == DialogResult.OK)             // Open File Dialog
             {
@@ -1324,9 +1329,9 @@ namespace INFOIBV
         /// <returns></returns>
         Color[,] CutSubImageBox(Color[,] fullImage, int u, int v, int width, int height)
         {
-            if (width > fullImage.GetLength(0))
+            if (width >= fullImage.GetLength(0))
                 return fullImage;
-            if (height > fullImage.GetLength(1))
+            if (height >= fullImage.GetLength(1))
                 return fullImage;
 
             Color[,] subImage = new Color[width, height];
@@ -1336,30 +1341,6 @@ namespace INFOIBV
                     subImage[x, y] = fullImage[u + x, v + y];
                 }
             return subImage;
-        }
-
-
-
-
-
-
-        drawPoint[] RegionLabeling()
-        {
-            Color backGrC = Color.FromArgb(255, 0, 0, 0);
-            //Color foreGrC = Color.FromArgb(255, 255, 255, 255);
-
-            Color previousColor = backGrC;
-
-            List<drawPoint> returnValue = new List<drawPoint>();
-
-            for (int v = 0; v < InputImage.Height; v++)
-                for (int u = 0; u < InputImage.Width; u++) //x moet 'snelst' doorlopen
-                {
-                    Color currentColor = Image[u, v];
-                    if (previousColor == backGrC && currentColor != backGrC)
-                        returnValue = TraceFigureOutline(backGrC, returnValue, u, v);
-                }
-            return returnValue.ToArray();
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
