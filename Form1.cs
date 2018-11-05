@@ -1144,7 +1144,7 @@ namespace INFOIBV
             Cvalues = ApplyGaussianFilter(Cvalues, 1.1f, 5);
             float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues);
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
-            List<Corner> cornerList = QToCorners(Qvalues);
+            List<Corner> cornerList = QToCorners(Qvalues, 10000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
             CornersToImage(goodCorners);
             toOutputBitmap();
@@ -1318,14 +1318,14 @@ namespace INFOIBV
 
 
 
-        List<Corner> QToCorners(float[,] Qvalues)
+        List<Corner> QToCorners(float[,] Qvalues, int threshold)
         {
             List<Corner> cornerList = new List<Corner>();
             for(int x = 0; x < Qvalues.GetLength(0); x++)
                 for(int y = 0; y < Qvalues.GetLength(1); y++)
                 {
                     
-                    if (Qvalues[x,y] > 20000 && IsLocalMax(Qvalues, x, y))
+                    if (Qvalues[x,y] > threshold && IsLocalMax(Qvalues, x, y))
                     {
                         //10500000
                         //3900000
