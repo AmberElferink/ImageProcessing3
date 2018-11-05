@@ -25,6 +25,7 @@ namespace INFOIBV
         int maxy;
         int currentRegions;
         int regionCount;
+        int optimalThreshold;
 
 
         public INFOIBV()
@@ -122,8 +123,6 @@ namespace INFOIBV
                     ApplyGreyscale();
                 else if (preprocessingRadio.Checked)
                     PreprocessingPipeline();
-                else if (regionLabelRadio.Checked)
-                    RegionLabeling();
 
                toOutputBitmap();
 
@@ -759,8 +758,9 @@ namespace INFOIBV
                 resetForApply();
                 ApplyOpeningClosingFilter(true);
                 greyscale++;
-                RegionLabeling();
+                RegionLabeling(greyscale);
                 Console.WriteLine("regionCount: " + regionCount + ", currentRegions: " + currentRegions);
+                Console.WriteLine("Optimal greyscale threshold value: " + optimalThreshold);
             }
 
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
@@ -778,7 +778,7 @@ namespace INFOIBV
             toOutputBitmap();
         }
 
-        void RegionLabeling()
+        void RegionLabeling(int greyscale)
         {
             // Region labeling maakt een nieuwe array aan die een border van 1 pixel meer heeft vergeleken met de originele afbeelding
             // Dit is om te zorgen dat de calculaties geen error geven bij foreground check van de afbeelding aan de randen
@@ -918,6 +918,7 @@ namespace INFOIBV
             // Hier wordt een marge van 10 pixels extra bijgerekend, om corner detection nauwkeuriger te maken en eventuele missende vingers er nog aan te plakken.
             if (regionCount <= currentRegions)
             {
+                optimalThreshold = greyscale;
                 for (int x = 1; x < InputImage.Size.Width + 1; x++)
                 {
                     for (int y = 1; y < InputImage.Size.Height + 1; y++)
@@ -1369,7 +1370,7 @@ namespace INFOIBV
                 for(int y = 0; y < Qvalues.GetLength(1); y++)
                 {
                     
-                    if (Qvalues[x,y] > 20000 && IsLocalMax(Qvalues, x, y))
+                    if (Qvalues[x,y] > 5000000 && IsLocalMax(Qvalues, x, y))
                     {
                         //10500000
                         //3900000
