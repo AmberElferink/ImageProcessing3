@@ -18,6 +18,14 @@ namespace INFOIBV
         float[,] Kx;
         float[,] Ky;
 
+        // variables needed for the result of the preprocessing pipeline
+        int minx;
+        int miny;
+        int maxx;
+        int maxy;
+        int currentRegions;
+        int regionCount;
+
 
         public INFOIBV()
         {
@@ -705,6 +713,13 @@ namespace INFOIBV
 
         void PreprocessingPipeline()
         {
+            minx = InputImage.Size.Width;
+            miny = InputImage.Size.Height;
+            maxx = 0;
+            maxy = 0;
+            regionCount = int.MaxValue;
+            currentRegions = int.MaxValue;
+
             ApplyGreyscale();
             Color[,] pipelineImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -716,7 +731,8 @@ namespace INFOIBV
             }
             String[] inputName = imageFileName1.Text.Split(new string[] { "." }, StringSplitOptions.None);
             kernelInput.Text = "0 0 0\r\n0 0 0\r\n0 0 0";
-            for (int g = 70; g <= 80; g++)
+            int greyscale = 70;
+            while (regionCount - 3 <= currentRegions)
             {
                 RightAsInput.Checked = false;
                 resetForApply();
@@ -727,13 +743,18 @@ namespace INFOIBV
                         Image[x, y] = pipelineImage[x, y];
                     }
                 }
-                ApplyThresholdFilter(g);
+                ApplyThresholdFilter(greyscale);
                 RightAsInput.Checked = true;
                 resetForApply();
                 ApplyOpeningClosingFilter(true);
                 toOutputBitmap();
-                OutputImage.Save(inputName[0] + " t" + g + ".bmp");
+                OutputImage.Save(inputName[0] + " t" + greyscale + ".bmp");
+                greyscale++;
+                RegionLabeling();
+                Console.WriteLine("regionCount: " + regionCount + ", currentRegions: " + currentRegions);
             }
+            Console.WriteLine("(Minx, miny): (" + minx + ", " + miny + ") - (Maxx, maxy): (" + maxx + ", " + maxy + ")");
+            RightAsInput.Checked = false;
         }
 
         void RegionLabeling()
@@ -753,7 +774,6 @@ namespace INFOIBV
                     // Zo niet, dan wordt een nieuwe waarde aangemaakt en krijgt de pixel deze waarde.
                     if (Image[x - 1, y - 1].R == 0)
                     {
-                        int newColor = 0;
                         isLabeled = false;
                         if (label[x - 1, y - 1] != 0)
                         {
@@ -763,33 +783,21 @@ namespace INFOIBV
                         if (label[x, y - 1] != 0)
                         {
                             if (isLabeled == true && label[x, y] != label[x, y - 1] && !conflict.Contains(new drawPoint(x, y)))
-                            {
                                 conflict.Add(new drawPoint(x, y));
-                                Console.WriteLine("Conflict detected at [" + x + ", " + y + "].");
-                                newColor = 255;
-                            }
                             label[x, y] = label[x, y - 1];
                             isLabeled = true;
                         }
                         if (label[x + 1, y - 1] != 0)
                         {
                             if (isLabeled && label[x, y] != label[x + 1, y - 1] && !conflict.Contains(new drawPoint(x, y)))
-                            {
                                 conflict.Add(new drawPoint(x, y));
-                                Console.WriteLine("Conflict detected at [" + x + ", " + y + "].");
-                                newColor = 255;
-                            }
                             label[x, y] = label[x + 1, y - 1];
                             isLabeled = true;
                         }
                         if (label[x - 1, y] != 0)
                         {
                             if (isLabeled && label[x, y] != label[x - 1, y] && !conflict.Contains(new drawPoint(x, y)))
-                            {
                                 conflict.Add(new drawPoint(x, y));
-                                Console.WriteLine("Conflict detected at [" + x + ", " + y + "].");
-                                newColor = 255;
-                            }
                             label[x, y] = label[x - 1, y];
                             isLabeled = true;
                         }
@@ -798,8 +806,6 @@ namespace INFOIBV
                             label[x, y] = labelIndex;
                             labelIndex++;
                         }
-                        Color updatedColor = Color.FromArgb(newColor, 0, 0);
-                        newImage[x - 1, y - 1] = updatedColor;
                     }
                 }
             }
@@ -819,7 +825,7 @@ namespace INFOIBV
                         {
                             connection[label1, label2] = true;
                             connection[label2, label1] = true;
-                            Console.WriteLine("Label " + label1 + " and label " + label2 + " describe the same region.");
+                            //Console.WriteLine("Label " + label1 + " and label " + label2 + " describe the same region.");
                         }
                     }
                 }
@@ -838,28 +844,6 @@ namespace INFOIBV
                 newLabel[i] = smallestRegion(i, newLabel, visited, connection);
             }
 
-            /*
-            for (int i = 1; i < newLabel.Length; i++)
-            {
-                for (int j = 1; j < newLabel.Length; j++)
-                {
-                    if (connection[i, j])
-                    {
-                        if (newLabel[j] < newLabel[i])
-                        {
-                            newLabel[i] = newLabel[j];
-                            Console.WriteLine("Label " + i + " is now mapped to label " + newLabel[j] + " from label " + j + ".");
-                        }
-                        if (newLabel[i] < newLabel[j])
-                        {
-                            newLabel[j] = newLabel[i];
-                            Console.WriteLine("Label " + j + " is now mapped to label " + newLabel[i] + " from label " + i + ".");
-                        }
-                    }
-                }
-            }
-            */
-
             // Hier worden de labels in de afbeelding daadwerkelijk overgeschreven.
             // Ook wordt per new label bijgehouden hoeveel pixels die waarde hebben. 
             // Dit kan later gebruikt worden om te kijken of een region groot genoeg is om een hand te kunnen zijn.
@@ -871,7 +855,11 @@ namespace INFOIBV
                     label[x, y] = newLabel[label[x, y]];
                     newLabelCount[label[x, y]]++;
 
-                    int newColor = label[x, y] * 10;
+                    int newColor = 0;
+                    if (Image[x - 1, y - 1].A == 0)
+                    {
+                        label[x, y] = 0;
+                    }
                     if (label[x, y] == 0)
                     {
                         newColor = 255;
@@ -881,9 +869,45 @@ namespace INFOIBV
                 }
             }
 
+            // De waardes van labels worden geprint en er wordt gekeken wat de grootste region is (afgezien van de background).
+            // Het aantal regions wordt ook geteld.
+            int largestLabel = 1;
+            regionCount = 0;
             for (int i = 0; i < newLabelCount.Length; i++)
             {
-                Console.WriteLine("Label " + i + ": " + newLabelCount[i]);
+                if (newLabelCount[i] > 0)
+                {
+                    Console.WriteLine("Label " + i + ": " + newLabelCount[i]);
+                    regionCount++;
+                }
+                if (newLabelCount[i] > newLabelCount[largestLabel] && i != 0)
+                {
+                    largestLabel = i;
+                    Console.WriteLine(i + "is now the largest region.");
+                }
+            }
+
+            // Als er minder of evenveel regions zijn als de vorige afbeelding, wordt de bounding box geupdated om de mogelijke hand van de huidige afbeelding te bevatten.
+            if (regionCount <= currentRegions)
+            {
+                for (int x = 1; x < InputImage.Size.Width + 1; x++)
+                {
+                    for (int y = 1; y < InputImage.Size.Height + 1; y++)
+                    {
+                        if (label[x, y] == largestLabel)
+                        {
+                            if (x - 1 < minx)
+                                minx = x - 1;
+                            if (y - 1 < miny)
+                                miny = y - 1;
+                            if (x - 1 > maxx)
+                                maxx = x - 1;
+                            if (y - 1 > maxy)
+                                maxy = y - 1;
+                        }
+                    }
+                }
+                currentRegions = regionCount;
             }
         }
 
