@@ -760,22 +760,42 @@ namespace INFOIBV
                 greyscale++;
                 RegionLabeling(greyscale);
                 Console.WriteLine("regionCount: " + regionCount + ", currentRegions: " + currentRegions);
-                Console.WriteLine("Optimal greyscale threshold value: " + optimalThreshold);
             }
 
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
             // De coordinaten van de bounding box blijven staan, dus die kunnen later gebruikt worden om in de originele afbeelding de positie van de hand te weergeven.
-            Console.WriteLine("(Minx, miny): (" + minx + ", " + miny + ") - (Maxx, maxy): (" + maxx + ", " + maxy + ")");
+            
+            // DIT STUKJE UNCOMMENTEN ALS JE EEN CUTOUT WILT VAN DE OPTIMALE THRESHOLD
+            /*
+            resetForApply();
             RightAsInput.Checked = false;
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Image[x, y] = pipelineImage[x, y];
+                }
+            }
+            ApplyThresholdFilter(optimalThreshold);
+            RightAsInput.Checked = true;
+            resetForApply();
+            ApplyOpeningClosingFilter(true);
+            */
+
             newImage = new Color[maxx - minx, maxy - miny];
             for (int x = 0; x < maxx - minx; x++)
             {
                 for (int y = 0; y < maxy - miny; y++)
                 {
                     newImage[x, y] = pipelineImage[x + minx, y + miny];
+                    // EN DIT OOK, EN DAN DE ANDERE NEWIMAGE STATEMENT UITCOMMENTEN JUIST
+                    // newImage[x, y] = Image[x + minx, y + miny];
                 }
             }
             toOutputBitmap();
+            RightAsInput.Checked = false;
+            Console.WriteLine("(Minx, miny): (" + minx + ", " + miny + ") - (Maxx, maxy): (" + maxx + ", " + maxy + ")");
+            Console.WriteLine("Optimal greyscale threshold value: " + optimalThreshold);
         }
 
         void RegionLabeling(int greyscale)
