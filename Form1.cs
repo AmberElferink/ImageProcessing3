@@ -863,7 +863,10 @@ namespace INFOIBV
         
         void HarrisCornerDetection(float[,] Kx, float[,] Ky)
         {
-            int[,] Qvalues = new int[InputImage.Size.Width, InputImage.Size.Height];
+            
+            float[,] Avalues = new float[InputImage.Size.Width, InputImage.Size.Height];
+            float[,] Bvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
+            float[,] Cvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
 
             float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
             float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
@@ -874,95 +877,233 @@ namespace INFOIBV
             {
                 for (int u = halfboxsize; u < InputImage.Size.Width - halfboxsize; u++)
                 {
-                    double Ix = CalculateNewColor(u, v, Hx, halfboxsize, false) / 8; //apply Kx to the image pixel
-                    double Iy = CalculateNewColor(u, v, Hy, halfboxsize, false) / 8; //apply Ky to the image pixel
+                    float Ix = CalculateNewColor(u, v, Hx, halfboxsize, false) / 8; //apply Kx to the image pixel
+                    float Iy = CalculateNewColor(u, v, Hy, halfboxsize, false) / 8; //apply Ky to the image pixel
 
 
                     //int edgeStrength = (int)Math.Sqrt(Ix * Ix + Iy * Iy); //calculate edgestrength by calculating the length of vector [Hx, Hy]
-                    double A = Ix * Ix;
-                    double B = Iy * Iy;
-                    double C = Ix * Iy;
-
-                    double traceM = A + B;
-                    double squareRoot = Math.Sqrt(A * A - 2 * A * B + B * B + 4 * C * C);
-                    double lambda1 =  (0.5 * (traceM + squareRoot));
-                    double lambda2 =  (0.5 * (traceM - squareRoot));
-
-                    float alfa = 0.05f;
-
-                    double Quv = (A * B - C * C) - (alfa * traceM * traceM);
-
-                        
-                    /*
-                    int ValQuv = 255;
-                    if(Quv >= 0)
-                        ValQuv = 0;                      
-
-                    newImage[u, v] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
-                    */
-                    Qvalues[u, v] = (int)Quv;
-                    if(Quv > 0)
-                    Console.WriteLine(Quv);
+                    Avalues[u,v] = Ix * Ix;
+                    Bvalues[u,v] = Iy * Iy;
+                    Cvalues[u,v] = Ix * Iy;
 
                 }
                 progressBar.PerformStep();
             }
-
-            int[,] highestQvalues = PickStrongestCorners(Qvalues, 0);
-            ApplyQthreshold(highestQvalues);
+            Avalues = ApplyGaussianFilter(Avalues, 1.1f, 5);
+            Bvalues = ApplyGaussianFilter(Bvalues, 1.1f, 5);
+            Cvalues = ApplyGaussianFilter(Cvalues, 1.1f, 5);
+            float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues);
+            //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
+            List<Corner> cornerList = QToCorners(Qvalues);
+            List<Corner> goodCorners = cleanUpCorners(cornerList, 5); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
+            CornersToImage(goodCorners);
             toOutputBitmap();
         }
 
-       int[,] PickStrongestCorners(int[,] Qvalues, int boxsize)
+
+        //classe corner maken, waardoor je die 3 waardes in een lijst kan zetten en cleanupcorners bouwen.
+        
+        List<Corner> cleanUpCorners(List<Corner> cornerList, double dmin)
         {
-            int[,] strongestQvalues = new int[Qvalues.GetLength(0), Qvalues.GetLength(1)];
-            drawPoint startingPoint = new drawPoint(-1, -1);
+            //corners have to be sorted by descending Q.
+            double dmin2 = dmin * dmin;
+            Corner[] cornerArray = cornerList.ToArray();
+            List<Corner> goodCorners = new List<Corner>();
 
-            int halfBoxSize = boxsize / 2;
-            for (int x = halfBoxSize; x < Qvalues.GetLength(0) - halfBoxSize; x++) //loop through the image
-            {
-                for (int y = halfBoxSize; y < Qvalues.GetLength(1) - halfBoxSize; y++) 
+            for(int i = 0; i< cornerArray.Length; i++)
+                if (cornerArray[i] != null)
                 {
-                    int highestQ = 0;
-                    drawPoint HighestQPoint = startingPoint;
+                    Corner c1 = cornerArray[i];
+                    goodCorners.Add(c1);
 
-                    for (int a = -halfBoxSize; a <= halfBoxSize; a++) //loop through the pixels around the pixel.
-                    {
-                        for (int b = -halfBoxSize; b <= halfBoxSize; b++)
+                    for (int j = i + 1; j < cornerArray.Length; j++)
+                        if (cornerArray[j] != null)
                         {
-                           
-                            if(Qvalues[x + a, x + b] > highestQ)
+                            Corner c2 = cornerArray[j];
+                            if (c1.CornerDistanceUV(c2) < dmin2) //compare squared distances
                             {
-                                highestQ = Qvalues[x + a, x + b];             //highest Q value is updated
-                                HighestQPoint = new drawPoint(x + a, x + b);
+                                //if there are too many corners in one distance
+                                cornerArray[j] = null; //remove corner c2
                             }
                         }
-                    }
-                    if (HighestQPoint != startingPoint)
-                        strongestQvalues[HighestQPoint.X, HighestQPoint.Y] = highestQ;
                 }
-            }
-            return strongestQvalues;
+
+            return goodCorners;
         }
 
-        void ApplyQthreshold(int[,] Qvalues)
+        void CornersToImage(List<Corner> corners)
         {
+            int backgroundColor = 255;
+            int foregroundColor = 0;
+            
+            for(int u = 0; u < newImage.GetLength(0); u++)
+                for (int v = 0; v < newImage.GetLength(1); v++)
+                {
+                    //fill the entire image with backgroundcolor
+                    newImage[u, v] = Color.FromArgb(backgroundColor, backgroundColor, backgroundColor);
+                }
+            foreach( Corner c in corners)
+            {
+                newImage[c.U, c.V] = Color.FromArgb(foregroundColor, foregroundColor, foregroundColor);
+            }
+        }
+
+        float[,] CalculateQvalues(float[,] Avalues, float[,] Bvalues, float[,] Cvalues)
+        {
+            float[,] Qvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
+
+            for (int x = 0; x < Avalues.GetLength(0); x++)
+            {
+                for(int y = 0; y < Avalues.GetLength(1); y++)
+                {
+                    float A = Avalues[x, y];
+                    float B = Bvalues[x, y];
+                    float C = Cvalues[x, y];
+
+                    float traceM = A + B;
+                    float squareRoot = (float) Math.Sqrt(A * A - 2 * A * B + B * B + 4 * C * C);
+                    float lambda1 = (float) (0.5 * (traceM + squareRoot));
+                    float lambda2 = (float) (0.5 * (traceM - squareRoot));
+
+                    float alfa = 0.05f;
+
+                    float Quv = (A * B - C * C) - (alfa * traceM * traceM);
+
+                    Qvalues[x, y] = (int)Quv;
+                }
+            }
+            return Qvalues;
+            
+        }
+
+        float[] Create1DKernel(int boxsize, float sigma, int filterBorder)
+        {
+            float[] kernel = new float[boxsize];
+
+            // berekenen 1D gaussian filter, uit boek pagina 115
+            float sigma2 = sigma * sigma;
+            float countingKernel = 0;
+            for (int j = 0; j < kernel.Length; j++)
+            {
+                float r = filterBorder - j;
+                kernel[j] = (float)Math.Exp(-0.5 * (r * r) / sigma2);
+                countingKernel += kernel[j];
+            }
+            for (int j = 0; j < kernel.Length; j++)
+            {
+                kernel[j] = kernel[j] / countingKernel;
+            }
+            return kernel;
+        }
+
+        private float[,] ApplyGaussianFilter(float[,] valueArray, float sigma, int boxsize)
+        {
+            // input lezen: eerst een float voor de sigma, dan een int voor de kernel size
+            
+            int filterBorder = (boxsize - 1) / 2;                                       //hulpvariabele voor verdere berekeningen
+
+            float[] kernel = Create1DKernel(boxsize, sigma, filterBorder);
+
+            // maak arrays om tijdelijke variabelen in op te slaan
+            float[,] gaussian1DColor = new float[boxsize, boxsize];
+            float[,] gaussian2DColor = new float[boxsize, boxsize];
+            float[,] weight = new float[boxsize, boxsize];
+
+            // verzamel- en telvariabelen
+            float gaussianTotal = 0;
+            float weightTotal = 0;
+            int i = 0;
+
+            float[,] newValueArray = new float[valueArray.GetLength(0), valueArray.GetLength(1)];
+
+
+            //Doorloop de image per pixel
+            for (int x = filterBorder; x < InputImage.Size.Width - filterBorder; x++)
+            {
+                for (int y = filterBorder; y < InputImage.Size.Height - filterBorder; y++)
+                {
+                    gaussianTotal = 0;
+                    weightTotal = 0;
+                    i = 0;
+
+                    // 1D-gaussian wordt eerst horizontaal toegepast. Nieuwe grijswaarden en weights worden in bijbehorende arrays opgeslagen.
+                    for (int a = -filterBorder; a <= filterBorder; a++)
+                    {
+                        i = 0;
+                        for (int b = -filterBorder; b <= filterBorder; b++)
+                        {
+                            gaussian1DColor[a + filterBorder, b + filterBorder] = ((float)valueArray[x + a, y + b] * kernel[i]);
+                            weight[a + filterBorder, b + filterBorder] = kernel[i];
+                            i++;
+                        }
+                    }
+
+                    // 1D-gaussian wordt opnieuw toegepast, nu verticaal.
+                    // Grijswaarden uit de eerste keer worden gebruikt om de nieuwe grijswaarden te maken, en deze worden bij elkaar opgeteld.
+                    // Weights worden ook herberekend en bij elkaar opgeteld.
+                    i = 0;
+                    for (int a = -filterBorder; a <= filterBorder; a++)
+                    {
+                        for (int b = -filterBorder; b <= filterBorder; b++)
+                        {
+                            gaussian2DColor[a + filterBorder, b + filterBorder] = (gaussian1DColor[a + filterBorder, b + filterBorder] * kernel[i]);
+                            gaussianTotal = gaussianTotal + gaussian2DColor[a + filterBorder, b + filterBorder];
+                            weight[a + filterBorder, b + filterBorder] = weight[a + filterBorder, b + filterBorder] * kernel[i];
+                            weightTotal = weightTotal + weight[a + filterBorder, b + filterBorder];
+                        }
+                        i++;
+                    }
+
+
+                    // Totale som grijswaarden delen door totale weights om uiteindelijke grijswaarde te krijgen.
+                    int gaussianColor = (int)(gaussianTotal / weightTotal);
+
+                    newValueArray[x, y] = gaussianColor;
+                }
+            }
+            return newValueArray;
+        }
+
+
+
+        List<Corner> QToCorners(float[,] Qvalues)
+        {
+            List<Corner> cornerList = new List<Corner>();
             for(int x = 0; x < Qvalues.GetLength(0); x++)
                 for(int y = 0; y < Qvalues.GetLength(1); y++)
                 {
-                    int ValQuv = 255;
                     
-                    if (Qvalues[x,y] > 100)
+                    if (Qvalues[x,y] > 0 && IsLocalMax(Qvalues, x, y))
                     {
-                        ValQuv = 0;
-                        Console.WriteLine(Qvalues[x, y]);
+                        Corner corner = new Corner(x, y, Qvalues[x, y]);
+                        cornerList.Add(corner);
                     }
-                        
-
-                    newImage[x, y] = Color.FromArgb(ValQuv, ValQuv, ValQuv);
+                    
                 }
+            cornerList.Sort();
+            return cornerList;
         }
 
+        bool IsLocalMax(float[,] Qvalues, int x, int y)
+        {
+            int halfBoxSize = 2;
+            float centerQ = Qvalues[x, y];
+
+            for (int a = -halfBoxSize; a <= halfBoxSize; a++) //loop through the pixels around the pixel.
+            {
+                for (int b = -halfBoxSize; b <= halfBoxSize; b++)
+                {
+                    int checkX = x + a;
+                    int checkY = y + b;
+                    if(checkX > 0 && checkY > 0 && checkX < Qvalues.GetLength(0) && checkY < Qvalues.GetLength(1))
+                    if (Qvalues[checkX, checkY] > centerQ)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
 
         //Creating Sobel kernel of odd size > 1 of arbitrary size
         //Copied from: https://stackoverflow.com/questions/9567882/sobel-filter-kernel-of-large-size/41065243#41065243
@@ -1070,5 +1211,37 @@ namespace INFOIBV
         }
 
 
+    }
+
+    public class Corner : IComparable<Corner>
+    {
+        int u;
+        int v;
+        float q;
+
+        public Corner(int u, int v, float q)
+        {
+            this.u = u;
+            this.v = v;
+            this.q = q;
+        }
+
+        public int CompareTo(Corner that)
+        {
+            if (this.q > that.q) return -1;
+            if (this.q == that.q) return 0;
+            return 1;
+        }
+
+        public double CornerDistanceUV(Corner c2)
+        {
+            double distx = this.u - c2.u;
+            double disty = this.v - c2.v;
+
+            return  Math.Sqrt(distx * distx + disty * disty);
+        }
+
+        public int U { get { return this.u; } }
+        public int V { get { return this.v; } }
     }
 }
