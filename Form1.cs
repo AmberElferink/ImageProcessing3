@@ -18,7 +18,7 @@ namespace INFOIBV
         float[,] Kx;
         float[,] Ky;
 
-        // variables needed for the result of the preprocessing pipeline
+        // Variabelen die voor de preprocessing pipeline nodig zijn
         int minx;
         int miny;
         int maxx;
@@ -344,9 +344,12 @@ namespace INFOIBV
         {
             //Image = newImage;
             // Copy array to output Bitmap
-            for (int x = 0; x < InputImage.Size.Width; x++)
+            OutputImage.Dispose();                 // Reset output image
+            OutputImage = new Bitmap(newImage.GetLength(0), newImage.GetLength(1));
+
+            for (int x = 0; x < OutputImage.Size.Width; x++)
             {
-                for (int y = 0; y < InputImage.Size.Height; y++)
+                for (int y = 0; y < OutputImage.Size.Height; y++)
                 {
                     //OutputImage1.SetPixel(x, y, Image[x, y]);               // Set the pixel color at coordinate (x,y)
                     OutputImage.SetPixel(x, y, newImage[x, y]);
@@ -713,6 +716,7 @@ namespace INFOIBV
 
         void PreprocessingPipeline()
         {
+            // Variabelen die nodig zijn om de bounding box en region count worden geinitializeerd
             minx = InputImage.Size.Width;
             miny = InputImage.Size.Height;
             maxx = 0;
@@ -720,6 +724,7 @@ namespace INFOIBV
             regionCount = int.MaxValue;
             currentRegions = int.MaxValue;
 
+            // Allereerst wordt de inputimage grijs gemaakt en gekopieerd naar een aparte color[,] array.
             ApplyGreyscale();
             Color[,] pipelineImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -729,9 +734,15 @@ namespace INFOIBV
                     pipelineImage[x, y] = newImage[x, y];
                 }
             }
-            String[] inputName = imageFileName1.Text.Split(new string[] { "." }, StringSplitOptions.None);
+            // Kernelinput en threshold start worden ook geinitialiseerd.
             kernelInput.Text = "0 0 0\r\n0 0 0\r\n0 0 0";
             int greyscale = 70;
+
+            // Daarna begint het checken.
+            // De grijsafbeelding die was gekopieerd wordt weer opnieuw ingeladen. Hier wordt eerst een threshold en daarna een opening filter op gebruikt.
+            // Daarna wordt de region labeling functie uitgevoerd, waaruit het aantal regions van die afbeelding rolt.
+            // Als er een gelijk aantal of minder regions dan het minimale aantal uitkomt, wordt de bounding box geupdated.
+            // Dit gaat door totdat de bounding box niet meer geupdated wordt en er 3 extra regions zijn ontdekt (gebeurt vanzelf door ruis).
             while (regionCount - 3 <= currentRegions)
             {
                 RightAsInput.Checked = false;
@@ -747,14 +758,24 @@ namespace INFOIBV
                 RightAsInput.Checked = true;
                 resetForApply();
                 ApplyOpeningClosingFilter(true);
-                toOutputBitmap();
-                OutputImage.Save(inputName[0] + " t" + greyscale + ".bmp");
                 greyscale++;
                 RegionLabeling();
                 Console.WriteLine("regionCount: " + regionCount + ", currentRegions: " + currentRegions);
             }
+
+            // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
+            // De coordinaten van de bounding box blijven staan, dus die kunnen later gebruikt worden om in de originele afbeelding de positie van de hand te weergeven.
             Console.WriteLine("(Minx, miny): (" + minx + ", " + miny + ") - (Maxx, maxy): (" + maxx + ", " + maxy + ")");
             RightAsInput.Checked = false;
+            newImage = new Color[maxx - minx, maxy - miny];
+            for (int x = 0; x < maxx - minx; x++)
+            {
+                for (int y = 0; y < maxy - miny; y++)
+                {
+                    newImage[x, y] = pipelineImage[x + minx, y + miny];
+                }
+            }
+            toOutputBitmap();
         }
 
         void RegionLabeling()
@@ -772,6 +793,7 @@ namespace INFOIBV
                     // Per foreground pixel wordt gekeken of een van de omringende pixels al is gelabeld.
                     // Zo ja, dan krijgt de pixel deze waarde. Mocht dit meerdere keren gebeuren, dan wordt er een conflict genoteerd.
                     // Zo niet, dan wordt een nieuwe waarde aangemaakt en krijgt de pixel deze waarde.
+                    // Mocht er trouwens een pixel gedetecteerd worden met alpha value 0 (doorzichtig), dan wordt die tot de achtergrond gerekend.
                     if (Image[x - 1, y - 1].R == 0)
                     {
                         isLabeled = false;
@@ -799,6 +821,11 @@ namespace INFOIBV
                             if (isLabeled && label[x, y] != label[x - 1, y] && !conflict.Contains(new drawPoint(x, y)))
                                 conflict.Add(new drawPoint(x, y));
                             label[x, y] = label[x - 1, y];
+                            isLabeled = true;
+                        }
+                        if (Image[x - 1, y - 1].A == 0)
+                        {
+                            label[x, y] = 0;
                             isLabeled = true;
                         }
                         if (isLabeled == false)
@@ -888,6 +915,7 @@ namespace INFOIBV
             }
 
             // Als er minder of evenveel regions zijn als de vorige afbeelding, wordt de bounding box geupdated om de mogelijke hand van de huidige afbeelding te bevatten.
+            // Hier wordt een marge van 10 pixels extra bijgerekend, om corner detection nauwkeuriger te maken en eventuele missende vingers er nog aan te plakken.
             if (regionCount <= currentRegions)
             {
                 for (int x = 1; x < InputImage.Size.Width + 1; x++)
@@ -897,13 +925,29 @@ namespace INFOIBV
                         if (label[x, y] == largestLabel)
                         {
                             if (x - 1 < minx)
-                                minx = x - 1;
+                            {
+                                minx = x - 1 - 10;
+                                if (minx < 0)
+                                    minx = 0;
+                            }
                             if (y - 1 < miny)
-                                miny = y - 1;
+                            {
+                                miny = y - 1 - 10;
+                                if (miny < 0)
+                                    miny = 0;
+                            }
                             if (x - 1 > maxx)
-                                maxx = x - 1;
+                            {
+                                maxx = x - 1 + 10;
+                                if (maxx > InputImage.Size.Width)
+                                    maxx = InputImage.Size.Width;
+                            }
                             if (y - 1 > maxy)
-                                maxy = y - 1;
+                            {
+                                maxy = y - 1 + 10;
+                                if (maxy > InputImage.Size.Height)
+                                    maxy = InputImage.Size.Height;
+                            }
                         }
                     }
                 }
