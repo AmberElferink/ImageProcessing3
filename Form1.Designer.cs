@@ -275,8 +275,8 @@
             legend1.IsTextAutoFit = false;
             legend1.Name = "Legend1";
             this.chart1.Legends.Add(legend1);
-            this.chart1.Location = new System.Drawing.Point(793, 12);
-            this.chart1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.chart1.Location = new System.Drawing.Point(1050, 18);
+            this.chart1.Margin = new System.Windows.Forms.Padding(2);
             this.chart1.Name = "chart1";
             series1.BorderWidth = 8;
             series1.ChartArea = "ChartArea1";
@@ -340,7 +340,7 @@
             // 
             this.thresholdRadio.AutoSize = true;
             this.thresholdRadio.Location = new System.Drawing.Point(727, 582);
-            this.thresholdRadio.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.thresholdRadio.Margin = new System.Windows.Forms.Padding(2);
             this.thresholdRadio.Name = "thresholdRadio";
             this.thresholdRadio.Size = new System.Drawing.Size(97, 17);
             this.thresholdRadio.TabIndex = 32;
@@ -353,7 +353,7 @@
             // 
             this.thresholdTrackbar.Enabled = false;
             this.thresholdTrackbar.Location = new System.Drawing.Point(828, 582);
-            this.thresholdTrackbar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.thresholdTrackbar.Margin = new System.Windows.Forms.Padding(2);
             this.thresholdTrackbar.Maximum = 255;
             this.thresholdTrackbar.Name = "thresholdTrackbar";
             this.thresholdTrackbar.Size = new System.Drawing.Size(94, 45);
@@ -394,7 +394,7 @@
             // 
             this.greyscaleRadio.AutoSize = true;
             this.greyscaleRadio.Location = new System.Drawing.Point(727, 606);
-            this.greyscaleRadio.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.greyscaleRadio.Margin = new System.Windows.Forms.Padding(2);
             this.greyscaleRadio.Name = "greyscaleRadio";
             this.greyscaleRadio.Size = new System.Drawing.Size(72, 17);
             this.greyscaleRadio.TabIndex = 36;
@@ -406,7 +406,7 @@
             // 
             this.preprocessingRadio.AutoSize = true;
             this.preprocessingRadio.Location = new System.Drawing.Point(836, 627);
-            this.preprocessingRadio.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.preprocessingRadio.Margin = new System.Windows.Forms.Padding(2);
             this.preprocessingRadio.Name = "preprocessingRadio";
             this.preprocessingRadio.Size = new System.Drawing.Size(132, 17);
             this.preprocessingRadio.TabIndex = 37;
@@ -418,7 +418,7 @@
             // 
             this.regionLabelRadio.AutoSize = true;
             this.regionLabelRadio.Location = new System.Drawing.Point(836, 649);
-            this.regionLabelRadio.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.regionLabelRadio.Margin = new System.Windows.Forms.Padding(2);
             this.regionLabelRadio.Name = "regionLabelRadio";
             this.regionLabelRadio.Size = new System.Drawing.Size(102, 17);
             this.regionLabelRadio.TabIndex = 38;
@@ -430,7 +430,7 @@
             // 
             this.cornerDetRadio.AutoSize = true;
             this.cornerDetRadio.Location = new System.Drawing.Point(458, 647);
-            this.cornerDetRadio.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.cornerDetRadio.Margin = new System.Windows.Forms.Padding(2);
             this.cornerDetRadio.Name = "cornerDetRadio";
             this.cornerDetRadio.Size = new System.Drawing.Size(102, 17);
             this.cornerDetRadio.TabIndex = 36;
@@ -442,7 +442,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1333, 739);
+            this.ClientSize = new System.Drawing.Size(1588, 739);
             this.Controls.Add(this.regionLabelRadio);
             this.Controls.Add(this.preprocessingRadio);
             this.Controls.Add(this.greyscaleRadio);

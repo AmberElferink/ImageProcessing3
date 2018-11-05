@@ -1118,8 +1118,8 @@ namespace INFOIBV
             float[,] Bvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
             float[,] Cvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
 
-            float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
-            float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
+            //float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
+            //float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
             int halfboxsize = Kx.GetLength(0) / 2;
 
@@ -1127,8 +1127,8 @@ namespace INFOIBV
             {
                 for (int u = halfboxsize; u < InputImage.Size.Width - halfboxsize; u++)
                 {
-                    float Ix = CalculateNewColor(u, v, Hx, halfboxsize, false) / 8; //apply Kx to the image pixel
-                    float Iy = CalculateNewColor(u, v, Hy, halfboxsize, false) / 8; //apply Ky to the image pixel
+                    float Ix = CalculateNewColor(u, v, Kx, halfboxsize, false) / 8; //apply Kx to the image pixel
+                    float Iy = CalculateNewColor(u, v, Ky, halfboxsize, false) / 8; //apply Ky to the image pixel
 
 
                     //int edgeStrength = (int)Math.Sqrt(Ix * Ix + Iy * Iy); //calculate edgestrength by calculating the length of vector [Hx, Hy]
@@ -1145,7 +1145,7 @@ namespace INFOIBV
             float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues);
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
             List<Corner> cornerList = QToCorners(Qvalues);
-            List<Corner> goodCorners = cleanUpCorners(cornerList, 5); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
+            List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
             CornersToImage(goodCorners);
             toOutputBitmap();
         }
@@ -1194,7 +1194,9 @@ namespace INFOIBV
                 }
             foreach( Corner c in corners)
             {
-                newImage[c.U, c.V] = Color.FromArgb(foregroundColor, foregroundColor, foregroundColor);
+                int Q = (int) c.Q;
+                Console.WriteLine(Q);
+                newImage[c.U, c.V] = Color.FromArgb(clamp(Q), 0, 0);
             }
         }
 
@@ -1323,8 +1325,10 @@ namespace INFOIBV
                 for(int y = 0; y < Qvalues.GetLength(1); y++)
                 {
                     
-                    if (Qvalues[x,y] > 0 && IsLocalMax(Qvalues, x, y))
+                    if (Qvalues[x,y] > 20000 && IsLocalMax(Qvalues, x, y))
                     {
+                        //10500000
+                        //3900000
                         Corner corner = new Corner(x, y, Qvalues[x, y]);
                         cornerList.Add(corner);
                     }
@@ -1467,5 +1471,7 @@ namespace INFOIBV
 
         public int U { get { return this.u; } }
         public int V { get { return this.v; } }
+
+        public float Q { get { return this.q; } }
     }
 }
