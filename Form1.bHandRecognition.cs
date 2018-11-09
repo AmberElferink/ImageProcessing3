@@ -12,7 +12,7 @@ namespace INFOIBV
     {
         //--------------------------------------------------TRACEBOUNDARY---------------------------------
 
-        drawPoint[] TraceBoundary()
+        drawPoint[] TraceBoundary(Color[,] InputImage)
         {
             Color backGrC = Color.FromArgb(255, 0, 0, 0);
             //Color foreGrC = Color.FromArgb(255, 255, 255, 255);
@@ -21,12 +21,12 @@ namespace INFOIBV
 
             List<drawPoint> returnValue = new List<drawPoint>();
 
-            for (int v = 0; v < InputImage.Height; v++)
-                for (int u = 0; u < InputImage.Width; u++) //x moet 'snelst' doorlopen
+            for (int v = 0; v < InputImage.GetLength(0); v++)
+                for (int u = 0; u < InputImage.GetLength(1); u++) //x moet 'snelst' doorlopen
                 {
-                    Color currentColor = Image[u, v];
+                    Color currentColor = InputImage[u, v];
                     if (previousColor == backGrC && currentColor != backGrC)
-                        returnValue = TraceFigureOutline(backGrC, returnValue, u, v);
+                        returnValue = TraceFigureOutline(backGrC, returnValue, u, v, InputImage);
                 }
 
             return returnValue.ToArray();
@@ -38,12 +38,12 @@ namespace INFOIBV
         /// Handles the case that there is a transition from background to foreground in the image, and traces the figure found.
         /// </summary>
         /// <param name="backgrC">background color</param>
-        List<drawPoint> TraceFigureOutline(Color backgrC, List<drawPoint> ContourPixels, int u, int v)
+        List<drawPoint> TraceFigureOutline(Color backgrC, List<drawPoint> ContourPixels, int u, int v, Color[,] InputImage)
         {
 
-            if (isContourPix(backgrC, u, v))
+            if (isContourPix(backgrC, u, v, InputImage))
             {
-                if (Image[u, v] != backgrC)
+                if (InputImage[u, v] != backgrC)
                 {
                     ContourPixels.Add(new drawPoint(u, v));
 
@@ -51,10 +51,10 @@ namespace INFOIBV
                     for (int x = -1; x <= 1; x++) //kijk van rechtsonder naar linksboven, dan loop je minder snel terug.
                         for (int y = -1; y <= 1; y++)
                         {
-                            if (u + x >= 0 && v + y >= 0 && u + x < InputImage.Width && v + y < InputImage.Height)
+                            if (u + x >= 0 && v + y >= 0 && u + x < InputImage.GetLength(0) && v + y < InputImage.GetLength(1))
                                 if (!ContourPixels.Contains(new drawPoint(u + x, v + y)))
                                 {
-                                    TraceFigureOutline(backgrC, ContourPixels, u + x, v + y);
+                                    TraceFigureOutline(backgrC, ContourPixels, u + x, v + y, InputImage);
                                 }
                         }
                 }
@@ -65,13 +65,13 @@ namespace INFOIBV
 
 
 
-        Boolean isContourPix(Color backgrC, int u, int v)
+        Boolean isContourPix(Color backgrC, int u, int v, Color[,] InputImage)
         {
             for (int x = -1; x <= 1; x++) //check if neighbouringpixels are background
                 for (int y = -1; y <= 1; y++)
                 {
-                    if (u + x >= 0 && v + y >= 0 && u + x < InputImage.Width && v + y < InputImage.Height)
-                        if (Image[u + x, v + y] == backgrC)
+                    if (u + x >= 0 && v + y >= 0 && u + x < InputImage.GetLength(0) && v + y < InputImage.GetLength(1))
+                        if (InputImage[u + x, v + y] == backgrC)
                             return true;
                 }
 
@@ -93,10 +93,12 @@ namespace INFOIBV
 
 
 
-        void BoundaryToOutput(drawPoint[] drawPoints)
+        void BoundaryToOutput(drawPoint[] drawPoints, Color[,] InputImage)
         {
-            for (int x = 0; x < InputImage.Width; x++)
-                for (int y = 0; y < InputImage.Height; y++)
+            OutputImage.Dispose();
+            OutputImage = new Bitmap(InputImage.GetLength(0), InputImage.GetLength(1));
+            for (int x = 0; x < InputImage.GetLength(0); x++)
+                for (int y = 0; y < InputImage.GetLength(1); y++)
                 {
                     if (drawPoints.Contains(new drawPoint(x, y)))
                         OutputImage.SetPixel(x, y, Color.FromArgb(255, 0, 0, 0));
@@ -147,24 +149,24 @@ namespace INFOIBV
 
 
 
-        void HarrisCornerDetection(float[,] Kx, float[,] Ky)
+        void HarrisCornerDetection(float[,] Kx, float[,] Ky, Color[,] InputImage)
         {
 
-            float[,] Avalues = new float[InputImage.Size.Width, InputImage.Size.Height];
-            float[,] Bvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
-            float[,] Cvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
+            float[,] Avalues = new float[InputImage.GetLength(0), InputImage.GetLength(1)];
+            float[,] Bvalues = new float[InputImage.GetLength(0), InputImage.GetLength(1)];
+            float[,] Cvalues = new float[InputImage.GetLength(0), InputImage.GetLength(1)];
 
             //float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
             //float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
             int halfboxsize = Kx.GetLength(0) / 2;
 
-            for (int v = halfboxsize; v < InputImage.Size.Height - halfboxsize; v++)
+            for (int v = halfboxsize; v < InputImage.GetLength(0) - halfboxsize; v++)
             {
-                for (int u = halfboxsize; u < InputImage.Size.Width - halfboxsize; u++)
+                for (int u = halfboxsize; u < InputImage.GetLength(1) - halfboxsize; u++)
                 {
-                    float Ix = CalculateNewColor(u, v, Kx, halfboxsize, false) / 8; //apply Kx to the image pixel
-                    float Iy = CalculateNewColor(u, v, Ky, halfboxsize, false) / 8; //apply Ky to the image pixel
+                    float Ix = CalculateNewColor(u, v, Kx, halfboxsize, InputImage, false) / 8; //apply Kx to the image pixel
+                    float Iy = CalculateNewColor(u, v, Ky, halfboxsize, InputImage, false) / 8; //apply Ky to the image pixel
 
 
                     //int edgeStrength = (int)Math.Sqrt(Ix * Ix + Iy * Iy); //calculate edgestrength by calculating the length of vector [Hx, Hy]
@@ -175,18 +177,21 @@ namespace INFOIBV
                 }
                 progressBar.PerformStep();
             }
-            Avalues = ApplyGaussianFilter(Avalues, 1.1f, 5);
-            Bvalues = ApplyGaussianFilter(Bvalues, 1.1f, 5);
-            Cvalues = ApplyGaussianFilter(Cvalues, 1.1f, 5);
-            float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues);
+            Avalues = ApplyGaussianFilter(Avalues, 1.1f, 5, InputImage);
+            Bvalues = ApplyGaussianFilter(Bvalues, 1.1f, 5, InputImage);
+            Cvalues = ApplyGaussianFilter(Cvalues, 1.1f, 5, InputImage);
+            float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues, InputImage);
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
             List<Corner> cornerList = QToCorners(Qvalues, 2000000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
-            CornersToImage(goodCorners);
+            List<Corner> firstCorners =  goodCorners.Take<Corner>(9).ToList<Corner>();
+            CornersToImage(firstCorners);
+
+
             toOutputBitmap();
         }
 
-        float CalculateNewColor(int x, int y, float[,] matrix, int halfBoxSize, bool divideByTotal = true)
+        float CalculateNewColor(int x, int y, float[,] matrix, int halfBoxSize, Color[,] InputImage, bool divideByTotal = true)
         {
             float linearColor = 0;
             float matrixTotal = 0;                // totale waarde van alle weights van de matrix bij elkaar opgeteld
@@ -194,7 +199,7 @@ namespace INFOIBV
             {
                 for (int b = -halfBoxSize; b <= halfBoxSize; b++)
                 {
-                    linearColor = linearColor + (Image[x + a, y + b].R * matrix[a + halfBoxSize, b + halfBoxSize]);
+                    linearColor = linearColor + (InputImage[x + a, y + b].R * matrix[a + halfBoxSize, b + halfBoxSize]);
                     // weight van filter wordt per kernel pixel toegepast op image pixel
                     matrixTotal = matrixTotal + matrix[a + halfBoxSize, b + halfBoxSize];
                     // weight wordt opgeteld bij totaalsom van weights
@@ -255,9 +260,9 @@ namespace INFOIBV
             }
         }
 
-        float[,] CalculateQvalues(float[,] Avalues, float[,] Bvalues, float[,] Cvalues)
+        float[,] CalculateQvalues(float[,] Avalues, float[,] Bvalues, float[,] Cvalues, Color[,] InputImage)
         {
-            float[,] Qvalues = new float[InputImage.Size.Width, InputImage.Size.Height];
+            float[,] Qvalues = new float[InputImage.GetLength(0) , InputImage.GetLength(1)];
 
             for (int x = 0; x < Avalues.GetLength(0); x++)
             {
@@ -303,7 +308,7 @@ namespace INFOIBV
             return kernel;
         }
 
-        private float[,] ApplyGaussianFilter(float[,] valueArray, float sigma, int boxsize)
+        private float[,] ApplyGaussianFilter(float[,] valueArray, float sigma, int boxsize, Color[,] InputImage)
         {
             // input lezen: eerst een float voor de sigma, dan een int voor de kernel size
 
@@ -325,9 +330,9 @@ namespace INFOIBV
 
 
             //Doorloop de image per pixel
-            for (int x = filterBorder; x < InputImage.Size.Width - filterBorder; x++)
+            for (int x = filterBorder; x < InputImage.GetLength(0) - filterBorder; x++)
             {
-                for (int y = filterBorder; y < InputImage.Size.Height - filterBorder; y++)
+                for (int y = filterBorder; y < InputImage.GetLength(1) - filterBorder; y++)
                 {
                     gaussianTotal = 0;
                     weightTotal = 0;
@@ -436,6 +441,99 @@ namespace INFOIBV
                 }
             }
         }
+
+
+        //-------------------------------------Convex hull-------------------------------------------
+
+
+
+       //-------------------------------------Convex hull defects-----------------------------------
+       //finds the inner 'hull' corners of the hand.
+        drawPoint[] convexHullStarCorners = {
+            new drawPoint(8, 61), //NW
+            new drawPoint(117, 11), //N
+            new drawPoint(225, 61), //NO
+            new drawPoint(225, 161), //ZO
+            new drawPoint(117, 212), //Z
+            new drawPoint(8, 161) //ZW
+        };
+
+        List<drawPoint> ConvexDefects(drawPoint[] allCorners, drawPoint[] convexCorners, Color[,] InputImage)
+        {
+            //zowel tracedBoundary als Convex hull, gaan tegen de klok in.
+            List<drawPoint> defects = new List<drawPoint>();
+            drawPoint[] tracedBoundary = TraceBoundary(InputImage);
+           
+            for(int i = 0; i < convexCorners.Length - 1; i++)
+            {
+                int startIndex = Array.IndexOf(tracedBoundary, convexCorners[i]);
+                int endIndex = Array.IndexOf(tracedBoundary, convexCorners[i + 1]);
+                if (startIndex == -1)
+                    throw new Exception("startingPoint is not found within the traced boundary");
+                if (endIndex == -1)
+                    throw new Exception("endPoint is not found within the traced boundary");
+
+                drawPoint centroid = FindCentroid(allCorners);
+                drawPoint defect = FindDefect(tracedBoundary, centroid, startIndex, endIndex);
+                defects.Add(defect);
+            }
+            return defects;
+
+        }
+
+
+
+        drawPoint FindDefect (drawPoint[] tracedBoundary, drawPoint centroid, int startIndex, int endIndex)
+        {
+            int minimumDistCentroid = int.MaxValue;
+            drawPoint defectPoint = centroid; //initial value, will be overwritten when a new minimum is found.
+
+            int i = startIndex;
+            //walk from the first convex hull corner to the second, or second to the third, etc
+            //for each point, calculate the distance to the centroid. Update the minimum distance.
+            //the final minimum distance gives the point that is the defect point (closest to the center of the hand on that line)
+            while (i <= endIndex)
+            {
+                int distanceCentroid = SqDistancePoints(tracedBoundary[i], centroid);
+                if (distanceCentroid < minimumDistCentroid)
+                {
+                    minimumDistCentroid = distanceCentroid;
+                    defectPoint = tracedBoundary[i];
+                }
+
+
+                if(i + 1 > tracedBoundary.Length - 1)
+                    i = 0;
+                else
+                    i++;
+            }
+            return defectPoint;
+        }
+
+        int SqDistancePoints(drawPoint p1, drawPoint p2)
+        {
+            int diffX = p1.X - p2.X;
+            int diffY = p1.Y - p2.Y;
+            return (diffX * diffX + diffY * diffY);
+        }
+
+        drawPoint FindCentroid(drawPoint[] input)
+        {
+            int totalX = 0;
+            int totalY = 0;
+            foreach (var ele in input)
+            {
+                totalX += ele.X;
+                totalY += ele.Y;
+            }
+            totalX = totalX / input.Length;
+            totalY = totalY / input.Length;
+            return new drawPoint(totalX, totalY);
+        }
+
+
+
+
 
     }
 }

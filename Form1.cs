@@ -54,15 +54,15 @@ namespace INFOIBV
             }
             if (BoundaryRadio.Checked)
             {
-                drawPoint[] boundary = TraceBoundary();
+                drawPoint[] boundary = TraceBoundary(Image);
                 kernelInput.Text = WritedrawPointArr(boundary);
-                BoundaryToOutput(boundary);
+                BoundaryToOutput(boundary, Image);
             }
             else if (cornerDetRadio.Checked)
             {
                 int n = 0;
                 CreateSobelKernel(n, ref Kx, ref Ky);
-                HarrisCornerDetection(Kx, Ky);
+                HarrisCornerDetection(Kx, Ky, Image);
 
             }
 
@@ -124,7 +124,7 @@ namespace INFOIBV
                 MessageBox2.Text = "please enter an integer";
             }
 
-            drawPoint[] points = TraceBoundary();
+            drawPoint[] points = TraceBoundary(Image);
             drawPoint x0 = new drawPoint(-1, -1);
             Vector[] polarCoords = new Vector[points.Length / amountSamples + 1];
 
@@ -400,8 +400,8 @@ namespace INFOIBV
             {
                 for (int y = halfboxsize; y < InputImage.Size.Height - halfboxsize; y++)
                 {
-                    float u = CalculateNewColor(x, y, Hx, halfboxsize, false) / 8; //apply Hx to the image pixel
-                    float v = CalculateNewColor(x, y, Hy, halfboxsize, false) / 8; //apply Hy to the image pixel
+                    float u = CalculateNewColor(x, y, Hx, halfboxsize, Image, false) / 8; //apply Hx to the image pixel
+                    float v = CalculateNewColor(x, y, Hy, halfboxsize, Image, false) / 8; //apply Hy to the image pixel
 
 
                     int edgeStrength = (int)Math.Sqrt(u * u + v * v); //calculate edgestrength by calculating the length of vector [Hx, Hy]
