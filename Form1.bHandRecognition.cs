@@ -183,6 +183,11 @@ namespace INFOIBV
             List<Corner> cornerList = QToCorners(Qvalues, 2000000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
             List<drawPoint> convexHull = ConvexHull(goodCorners);
+            List<float> angleList = cornerOfConvex(convexHull);
+            for (int i = 0; i < angleList.Count; i++)
+            {
+                Console.WriteLine("Corner " + i + "'s angle: " + (angleList[i] * 180 / Pi));
+            }
             ConvexhullToImage(convexHull);
             //CornersToImage(goodCorners);
             toOutputBitmap();
@@ -512,6 +517,45 @@ namespace INFOIBV
                 return 1; // (* Orientation is to the right-hand side *)
 
             return 0; //  (* Orientation is neutral aka collinear  *)
+        }
+
+        public static drawPoint findCentroid(List<drawPoint> input)
+        {
+            int totalX = 0;
+            int totalY = 0;
+            foreach (var ele in input)
+            {
+                totalX += ele.X;
+                totalY += ele.Y;
+            }
+            totalX = totalX / input.Count;
+            totalY = totalY / input.Count;
+            return new drawPoint(totalX, totalY);
+        }
+
+        public static List<float> cornerOfConvex(List<drawPoint> point)
+        {
+            List<float> angleList = new List<float>();
+            Console.WriteLine(point.Count);
+            for (int i = 0; i < point.Count; i++)
+            {
+                int previousPoint = i - 1;
+                if (i - 1 < 0)
+                    previousPoint = point.Count - 1;
+                int nextPoint = i + 1;
+                if (i + 1 > point.Count - 1)
+                    nextPoint = 0;
+                Vector vector1 = new Vector(point[i].X - point[previousPoint].X, point[i].Y - point[previousPoint].Y);
+                double vector1length = Math.Sqrt((vector1.X * vector1.X) + (vector1.Y * vector1.Y));
+                Vector vector2 = new Vector(point[i].X - point[nextPoint].X, point[i].Y - point[nextPoint].Y);
+                double vector2length = Math.Sqrt((vector2.X * vector2.X) + (vector2.Y * vector2.Y));
+                double dot = (vector1.X * vector2.X) + (vector1.Y * vector2.Y);
+                double vec1vec2length = vector1length * vector2length;
+                double cosineRule = dot / vec1vec2length;
+                float angle = (float)Math.Acos(cosineRule);
+                angleList.Add(angle);
+            }
+            return angleList;
         }
 
     }

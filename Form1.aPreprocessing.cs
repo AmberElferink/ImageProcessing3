@@ -385,7 +385,7 @@ namespace INFOIBV
                 ApplyOpeningClosingFilter(true);
                 greyscale++;
                 RegionLabeling(greyscale);
-                Console.WriteLine("regionCount: " + regionCount + ", currentRegions: " + currentRegions);
+                Console.WriteLine("regionCount: " + regionCount + "at greyscale " + greyscale + ", currentRegions: " + currentRegions);
             }
 
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
@@ -553,13 +553,13 @@ namespace INFOIBV
             {
                 if (newLabelCount[i] > 0)
                 {
-                    Console.WriteLine("Label " + i + ": " + newLabelCount[i]);
+                    //Console.WriteLine("Label " + i + ": " + newLabelCount[i]);
                     regionCount++;
                 }
                 if (newLabelCount[i] > newLabelCount[largestLabel] && i != 0)
                 {
                     largestLabel = i;
-                    Console.WriteLine(i + "is now the largest region.");
+                    //Console.WriteLine(i + "is now the largest region.");
                 }
             }
 
