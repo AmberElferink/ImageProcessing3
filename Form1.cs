@@ -26,6 +26,7 @@ namespace INFOIBV
         int currentRegions;
         int regionCount;
         int optimalThreshold;
+        int[,] optimalLabel;
 
 
         public INFOIBV()
@@ -722,6 +723,7 @@ namespace INFOIBV
             maxy = 0;
             regionCount = int.MaxValue;
             currentRegions = int.MaxValue;
+            optimalLabel = new int[InputImage.Size.Width, InputImage.Size.Height];
 
             // Allereerst wordt de inputimage grijs gemaakt en gekopieerd naar een aparte color[,] array.
             ApplyGreyscale();
@@ -765,7 +767,7 @@ namespace INFOIBV
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
             // De coordinaten van de bounding box blijven staan, dus die kunnen later gebruikt worden om in de originele afbeelding de positie van de hand te weergeven.
             
-            // DIT STUKJE UNCOMMENTEN ALS JE EEN CUTOUT WILT VAN DE OPTIMALE THRESHOLD
+            // Dit stukje is eigenlijk niet meer nodig, maar kan nog gebruikt worden om een threshold te krijgen van de optimale threshold die eerder berekend is
             /*
             resetForApply();
             RightAsInput.Checked = false;
@@ -781,15 +783,18 @@ namespace INFOIBV
             resetForApply();
             ApplyOpeningClosingFilter(true);
             */
+            
 
             newImage = new Color[maxx - minx, maxy - miny];
             for (int x = 0; x < maxx - minx; x++)
             {
                 for (int y = 0; y < maxy - miny; y++)
                 {
-                    newImage[x, y] = pipelineImage[x + minx, y + miny];
+                    //newImage[x, y] = pipelineImage[x + minx, y + miny];
                     // EN DIT OOK, EN DAN DE ANDERE NEWIMAGE STATEMENT UITCOMMENTEN JUIST
-                    // newImage[x, y] = Image[x + minx, y + miny];
+                    int labelColor = 255 - optimalLabel[x + minx, y + miny];
+                    Color updatedColor = Color.FromArgb(labelColor, labelColor, labelColor);
+                    newImage[x, y] = updatedColor;
                 }
             }
             toOutputBitmap();
@@ -945,6 +950,7 @@ namespace INFOIBV
                     {
                         if (label[x, y] == largestLabel)
                         {
+                            optimalLabel[x - 1, y - 1] = 255;
                             if (x - 1 < minx)
                             {
                                 minx = x - 1 - 10;
@@ -1209,7 +1215,7 @@ namespace INFOIBV
             Cvalues = ApplyGaussianFilter(Cvalues, 1.1f, 5);
             float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues);
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
-            List<Corner> cornerList = QToCorners(Qvalues, 10000);
+            List<Corner> cornerList = QToCorners(Qvalues, 2000000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
             CornersToImage(goodCorners);
             toOutputBitmap();
