@@ -182,7 +182,9 @@ namespace INFOIBV
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
             List<Corner> cornerList = QToCorners(Qvalues, 2000000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
-            CornersToImage(goodCorners);
+            List<drawPoint> convexHull = ConvexHull(goodCorners);
+            ConvexhullToImage(convexHull);
+            //CornersToImage(goodCorners);
             toOutputBitmap();
         }
 
@@ -435,6 +437,81 @@ namespace INFOIBV
                         Kx[i, j] = Ky[j, i] = 0;
                 }
             }
+        }
+
+        // Deze functie maakt een convex hull uit een lijst corners met behulp van een gift wrappign algorithm.
+        // Originele code gekopieerd van https://stackoverflow.com/questions/10020949/gift-wrapping-algorithm
+        public static List<drawPoint> ConvexHull(List<Corner> input)
+        {
+            if (input.Count < 3)
+            {
+                throw new ArgumentException("Convex hull could not be created, at least 3 corners are required", "input");
+            }
+            
+            // De lijst corners die als input werd gegeven wordt omgezet naar een lijst drawpoints.
+            List<drawPoint> points = new List<drawPoint>();
+            foreach (var ele in input)
+            {
+                points.Add(new drawPoint(ele.U, ele.V));
+            }
+
+            List<drawPoint> hull = new List<drawPoint>();
+
+            // Het eerste punt bevindt zich in de linkerbovenhoek van de afbeelding, dit is gegarandeerd in de convex hull te zitten.
+            drawPoint vPointOnHull = points.Where(p => p.X == points.Min(min => min.X)).First();
+
+            // Daarna wordt er per punt een lijn naar elk ander punt getrokken en wordt er gekeken of er nog andere punten aan die kant van de lijn liggen met behulp van de orientation functie.
+            drawPoint vEndpoint;
+            do
+            {
+                hull.Add(vPointOnHull);
+                vEndpoint = points[0];
+
+                for (int i = 1; i < points.Count; i++)
+                {
+                    if ((vPointOnHull == vEndpoint)
+                        || (Orientation(vPointOnHull, vEndpoint, points[i]) == -1))
+                    {
+                        vEndpoint = points[i];
+                    }
+                }
+
+                vPointOnHull = vEndpoint;
+
+            }
+            while (vEndpoint != hull[0]);
+
+            return hull;
+        }
+
+        void ConvexhullToImage(List<drawPoint> hull)
+        {
+            for (int i = 0; i < InputImage.Size.Width; i++)
+            {
+                for (int j = 0; j < InputImage.Size.Height; j++)
+                {
+                    newImage[i, j] = Color.FromArgb(255, 255, 255);
+                }
+            }
+            foreach (var ele in hull)
+            {
+                newImage[ele.X, ele.Y] = Color.FromArgb(255, 0, 0);
+                Console.WriteLine("(" + ele.X + ", " + ele.Y + ")");
+            }
+        }
+
+
+        private static int Orientation(drawPoint p1, drawPoint p2, drawPoint p)
+        {
+            // Determinant
+            int Orin = (p2.X - p1.X) * (p.Y - p1.Y) - (p.X - p1.X) * (p2.Y - p1.Y);
+
+            if (Orin > 0)
+                return -1; //          (* Orientation is to the left-hand side  *)
+            if (Orin < 0)
+                return 1; // (* Orientation is to the right-hand side *)
+
+            return 0; //  (* Orientation is neutral aka collinear  *)
         }
 
     }
