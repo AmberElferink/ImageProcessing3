@@ -88,6 +88,12 @@ namespace INFOIBV
                     ApplyGreyscale();
                 else if (preprocessingRadio.Checked)
                     PreprocessingPipeline();
+                else if (pipelineRadio.Checked)
+                {
+                    CreateSobelKernel(0, ref Kx, ref Ky);
+                    kernelInput.Text = WritedrawPointArr(ConvexDefects(CornerListToArray(HarrisCornerDetection(Kx, Ky, Image)), convexHullStarCorners, Image));
+                }
+                   
 
                toOutputBitmap();
                 //greyscale, region labelling, opening closing (dus erosion dilation), 
@@ -95,6 +101,16 @@ namespace INFOIBV
 
             }
         }
+        
+        drawPoint[] CornerListToArray(List<Corner> cornerList)
+        {
+            drawPoint[] cornerArray = new drawPoint[cornerList.Count];
+            for (int i = 0; i < cornerList.Count; i++)
+                cornerArray[i] = new drawPoint(cornerList[i].U, cornerList[i].V);
+            return cornerArray;
+        }
+
+        
 
 
         String WritedrawVectArr(Vector[] Cn)
@@ -104,6 +120,17 @@ namespace INFOIBV
             for (int n = 0; n < Cn.Length; n++)
             {
                 output = output + "(" + Cn[n].X + "," + Cn[n].Y + "), ";
+            }
+            output += "}";
+            return output;
+        }
+
+        String WritedrawPointArr(drawPoint[] drawPoints)
+        {
+            String output = "{";
+            for (int i = 0; i < drawPoints.Length; i++)
+            {
+                output = output + "(" + drawPoints[i].X + "," + drawPoints[i].Y + "), ";
             }
             output += "}";
             return output;

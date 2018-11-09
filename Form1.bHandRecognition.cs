@@ -21,8 +21,8 @@ namespace INFOIBV
 
             List<drawPoint> returnValue = new List<drawPoint>();
 
-            for (int v = 0; v < InputImage.GetLength(0); v++)
-                for (int u = 0; u < InputImage.GetLength(1); u++) //x moet 'snelst' doorlopen
+            for (int v = 0; v < InputImage.GetLength(1); v++)
+                for (int u = 0; u < InputImage.GetLength(0); u++) //x moet 'snelst' doorlopen
                 {
                     Color currentColor = InputImage[u, v];
                     if (previousColor == backGrC && currentColor != backGrC)
@@ -79,17 +79,6 @@ namespace INFOIBV
         }
 
 
-
-        String WritedrawPointArr(drawPoint[] drawPoints)
-        {
-            String output = "{";
-            for (int i = 0; i < drawPoints.Length; i++)
-            {
-                output = output + "(" + drawPoints[i].X + "," + drawPoints[i].Y + "), ";
-            }
-            output += "}";
-            return output;
-        }
 
 
 
@@ -149,7 +138,7 @@ namespace INFOIBV
 
 
 
-        void HarrisCornerDetection(float[,] Kx, float[,] Ky, Color[,] InputImage)
+        List<Corner> HarrisCornerDetection(float[,] Kx, float[,] Ky, Color[,] InputImage)
         {
 
             float[,] Avalues = new float[InputImage.GetLength(0), InputImage.GetLength(1)];
@@ -161,9 +150,9 @@ namespace INFOIBV
 
             int halfboxsize = Kx.GetLength(0) / 2;
 
-            for (int v = halfboxsize; v < InputImage.GetLength(0) - halfboxsize; v++)
+            for (int v = halfboxsize; v < InputImage.GetLength(1) - halfboxsize; v++)
             {
-                for (int u = halfboxsize; u < InputImage.GetLength(1) - halfboxsize; u++)
+                for (int u = halfboxsize; u < InputImage.GetLength(0) - halfboxsize; u++)
                 {
                     float Ix = CalculateNewColor(u, v, Kx, halfboxsize, InputImage, false) / 8; //apply Kx to the image pixel
                     float Iy = CalculateNewColor(u, v, Ky, halfboxsize, InputImage, false) / 8; //apply Ky to the image pixel
@@ -184,11 +173,11 @@ namespace INFOIBV
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
             List<Corner> cornerList = QToCorners(Qvalues, 2000000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
-            List<Corner> firstCorners =  goodCorners.Take<Corner>(9).ToList<Corner>();
-            CornersToImage(firstCorners);
+            CornersToImage(goodCorners);
 
 
             toOutputBitmap();
+            return goodCorners;
         }
 
         float CalculateNewColor(int x, int y, float[,] matrix, int halfBoxSize, Color[,] InputImage, bool divideByTotal = true)
@@ -199,6 +188,7 @@ namespace INFOIBV
             {
                 for (int b = -halfBoxSize; b <= halfBoxSize; b++)
                 {
+                    //if(x + a < InputImage.GetLength(0) && y + b < InputImage.GetLength(1))
                     linearColor = linearColor + (InputImage[x + a, y + b].R * matrix[a + halfBoxSize, b + halfBoxSize]);
                     // weight van filter wordt per kernel pixel toegepast op image pixel
                     matrixTotal = matrixTotal + matrix[a + halfBoxSize, b + halfBoxSize];
@@ -458,7 +448,7 @@ namespace INFOIBV
             new drawPoint(8, 161) //ZW
         };
 
-        List<drawPoint> ConvexDefects(drawPoint[] allCorners, drawPoint[] convexCorners, Color[,] InputImage)
+        drawPoint[] ConvexDefects(drawPoint[] allCorners, drawPoint[] convexCorners, Color[,] InputImage)
         {
             //zowel tracedBoundary als Convex hull, gaan tegen de klok in.
             List<drawPoint> defects = new List<drawPoint>();
@@ -477,7 +467,7 @@ namespace INFOIBV
                 drawPoint defect = FindDefect(tracedBoundary, centroid, startIndex, endIndex);
                 defects.Add(defect);
             }
-            return defects;
+            return defects.ToArray();
 
         }
 

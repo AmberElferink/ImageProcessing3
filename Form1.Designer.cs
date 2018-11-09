@@ -66,6 +66,7 @@
             this.preprocessingRadio = new System.Windows.Forms.RadioButton();
             this.regionLabelRadio = new System.Windows.Forms.RadioButton();
             this.cornerDetRadio = new System.Windows.Forms.RadioButton();
+            this.pipelineRadio = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
@@ -426,11 +427,23 @@
             this.cornerDetRadio.Text = "corner detection";
             this.cornerDetRadio.UseVisualStyleBackColor = true;
             // 
+            // pipelineRadio
+            // 
+            this.pipelineRadio.AutoSize = true;
+            this.pipelineRadio.Location = new System.Drawing.Point(258, 579);
+            this.pipelineRadio.Name = "pipelineRadio";
+            this.pipelineRadio.Size = new System.Drawing.Size(138, 17);
+            this.pipelineRadio.TabIndex = 39;
+            this.pipelineRadio.TabStop = true;
+            this.pipelineRadio.Text = "Hand detection Pipeline";
+            this.pipelineRadio.UseVisualStyleBackColor = true;
+            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1588, 739);
+            this.Controls.Add(this.pipelineRadio);
             this.Controls.Add(this.regionLabelRadio);
             this.Controls.Add(this.preprocessingRadio);
             this.Controls.Add(this.greyscaleRadio);
@@ -508,6 +521,7 @@
         private System.Windows.Forms.RadioButton preprocessingRadio;
         private System.Windows.Forms.RadioButton regionLabelRadio;
         private System.Windows.Forms.RadioButton cornerDetRadio;
+        private System.Windows.Forms.RadioButton pipelineRadio;
     }
 }
 
