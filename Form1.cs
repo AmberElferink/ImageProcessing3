@@ -761,7 +761,7 @@ namespace INFOIBV
                 ApplyOpeningClosingFilter(true);
                 greyscale++;
                 RegionLabeling(greyscale);
-                Console.WriteLine("regionCount: " + regionCount + ", currentRegions: " + currentRegions);
+                //Console.WriteLine("regionCount: " + regionCount + ", currentRegions: " + currentRegions);
             }
 
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
@@ -784,8 +784,8 @@ namespace INFOIBV
             ApplyOpeningClosingFilter(true);
             */
             
-
             newImage = new Color[maxx - minx, maxy - miny];
+            List<drawPoint> optimalRegion = new List<drawPoint>();
             for (int x = 0; x < maxx - minx; x++)
             {
                 for (int y = 0; y < maxy - miny; y++)
@@ -793,6 +793,10 @@ namespace INFOIBV
                     //newImage[x, y] = pipelineImage[x + minx, y + miny];
                     // EN DIT OOK, EN DAN DE ANDERE NEWIMAGE STATEMENT UITCOMMENTEN JUIST
                     int labelColor = 255 - optimalLabel[x + minx, y + miny];
+                    if (optimalLabel[x + minx, y + miny] == 255)
+                    {
+                        optimalRegion.Add(new drawPoint(x, y));
+                    }
                     Color updatedColor = Color.FromArgb(labelColor, labelColor, labelColor);
                     newImage[x, y] = updatedColor;
                 }
@@ -929,13 +933,13 @@ namespace INFOIBV
             {
                 if (newLabelCount[i] > 0)
                 {
-                    Console.WriteLine("Label " + i + ": " + newLabelCount[i]);
+                    //Console.WriteLine("Label " + i + ": " + newLabelCount[i]);
                     regionCount++;
                 }
                 if (newLabelCount[i] > newLabelCount[largestLabel] && i != 0)
                 {
                     largestLabel = i;
-                    Console.WriteLine(i + "is now the largest region.");
+                    //Console.WriteLine(i + "is now the largest region.");
                 }
             }
 
