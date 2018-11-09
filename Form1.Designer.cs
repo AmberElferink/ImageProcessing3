@@ -52,7 +52,6 @@
             this.BoundaryRadio = new System.Windows.Forms.RadioButton();
             this.FourierRadio = new System.Windows.Forms.RadioButton();
             this.MessageBox2 = new System.Windows.Forms.TextBox();
-            this.complementRadio = new System.Windows.Forms.RadioButton();
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.FourierSamples = new System.Windows.Forms.Label();
@@ -245,17 +244,6 @@
             this.MessageBox2.ReadOnly = true;
             this.MessageBox2.Size = new System.Drawing.Size(319, 20);
             this.MessageBox2.TabIndex = 23;
-            // 
-            // complementRadio
-            // 
-            this.complementRadio.AutoSize = true;
-            this.complementRadio.Location = new System.Drawing.Point(258, 579);
-            this.complementRadio.Name = "complementRadio";
-            this.complementRadio.Size = new System.Drawing.Size(171, 17);
-            this.complementRadio.TabIndex = 24;
-            this.complementRadio.TabStop = true;
-            this.complementRadio.Text = "Complementary (inverse) image";
-            this.complementRadio.UseVisualStyleBackColor = true;
             // 
             // chart1
             // 
@@ -457,7 +445,6 @@
             this.Controls.Add(this.FourierSamples);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.chart1);
-            this.Controls.Add(this.complementRadio);
             this.Controls.Add(this.MessageBox2);
             this.Controls.Add(this.FourierRadio);
             this.Controls.Add(this.BoundaryRadio);
@@ -507,7 +494,6 @@
         private System.Windows.Forms.RadioButton BoundaryRadio;
         private System.Windows.Forms.RadioButton FourierRadio;
         private System.Windows.Forms.TextBox MessageBox2;
-        private System.Windows.Forms.RadioButton complementRadio;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label FourierSamples;
