@@ -54,15 +54,15 @@ namespace INFOIBV
             }
             if (BoundaryRadio.Checked)
             {
-                drawPoint[] boundary = TraceBoundary();
+                drawPoint[] boundary = TraceBoundary(Image, getBackgroundColor());
                 kernelInput.Text = WritedrawPointArr(boundary);
-                BoundaryToOutput(boundary);
+                BoundaryToOutput(boundary, Image);
             }
             else if (cornerDetRadio.Checked)
             {
                 int n = 0;
                 CreateSobelKernel(n, ref Kx, ref Ky);
-                HarrisCornerDetection(Kx, Ky);
+                HarrisCornerDetection(Kx, Ky, Image);
 
             }
 
@@ -78,38 +78,71 @@ namespace INFOIBV
                     ApplyOpeningClosingFilter(false);
                 else if (ValueRadio.Checked)
                     kernelInput.Text = "Unique values: " + valueCount(generateHistogram(Image));
-                else if (FourierRadio.Checked)
-                    kernelInput.Text = WritedrawVectArr(FourierComponents());
                 else if (thresholdRadio.Checked)
                     ApplyThresholdFilter(thresholdTrackbar.Value);
                 else if (edgeDetection.Checked)
                     ApplyEdgeDetection();
+                else if (findCentroid.Checked)
+                {
+                    try { FindCentroid(ColorArrayToDrawPoints(Image)); }
+                    catch (Exception error) { MessageBox2.Text = error.Message; }
+                }
+
                 else if (greyscaleRadio.Checked)
                     ApplyGreyscale();
                 else if (preprocessingRadio.Checked)
                     PreprocessingPipeline();
-                else if (regionLabelRadio.Checked)
+                else if (pipelineRadio.Checked)
                 {
-                    List<drawPoint> testlist = new List<drawPoint>();
-                    drawPoint min = new drawPoint(272, 77);
-                    drawPoint test1 = new drawPoint(9, 184);
-                    testlist.Add(test1);
-                    drawPoint test2 = new drawPoint(82, 184);
-                    testlist.Add(test2);
-                    drawPoint test3 = new drawPoint(31, 28);
-                    testlist.Add(test3);
-                    drawPoint test4 = new drawPoint(19, 10);
-                    testlist.Add(test4);
-                    drawPoint test5 = new drawPoint(12, 32);
-                    testlist.Add(test5);
-                    drawPointsInImage(testlist, min, 1);
+                    CreateSobelKernel(0, ref Kx, ref Ky);
+                    List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, Image);
+                    kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), Image));
                 }
+                   
 
                toOutputBitmap();
                 //greyscale, region labelling, opening closing (dus erosion dilation), 
                 //weg: Fourier, complement WritedrawVectArr
 
             }
+        }
+
+        drawPoint[] ColorArrayToDrawPoints(Color[,] image)
+        {
+            Color backgroundColor = getBackgroundColor();
+            List<drawPoint> drawpoints = new List<drawPoint>();
+            for(int u = 0; u <image.GetLength(0); u++)
+                for(int v = 0; v < image.GetLength(1); v++)
+                {
+                    if (image[u, v] != backgroundColor)
+                        drawpoints.Add(new drawPoint(u, v));
+
+                }
+            return drawpoints.ToArray();
+        }
+        
+        drawPoint[] CornerListToArray(List<Corner> cornerList)
+        {
+            drawPoint[] cornerArray = new drawPoint[cornerList.Count];
+            for (int i = 0; i < cornerList.Count; i++)
+                cornerArray[i] = new drawPoint(cornerList[i].U, cornerList[i].V);
+            return cornerArray;
+        }
+
+        Color getBackgroundColor ()
+        {
+            if (checkBlackBackground.Checked)
+                return Color.FromArgb(255, 0, 0, 0);
+            
+            return Color.FromArgb(255, 255, 255, 255);
+        }
+
+        Color getForegroundColor()
+        {
+            if (checkBlackBackground.Checked)
+                return Color.FromArgb(255, 255, 255, 255);
+
+            return Color.FromArgb(255, 0, 0, 0);
         }
 
 
@@ -125,78 +158,20 @@ namespace INFOIBV
             return output;
         }
 
+        String WritedrawPointArr(drawPoint[] drawPoints)
+        {
+            String output = "{";
+            for (int i = 0; i < drawPoints.Length; i++)
+            {
+                output = output + "(" + drawPoints[i].X + "," + drawPoints[i].Y + "), ";
+            }
+            output += "}";
+            return output;
+        }
+
         float Pi = (float)Math.PI;
 
-        Vector[] FourierComponents()
-        {
-            int amountSamples = 1;
-
-            try
-            {
-                amountSamples = int.Parse(textBox1.Text);
-            }
-            catch
-            {
-                MessageBox2.Text = "please enter an integer";
-            }
-
-            drawPoint[] points = TraceBoundary();
-            drawPoint x0 = new drawPoint(-1, -1);
-            Vector[] polarCoords = new Vector[points.Length / amountSamples + 1];
-
-            int polarCoordIndex = 0;
-            for (int i = 0; i < points.Length; i = i + amountSamples)
-            {
-                int xlength = points[i].X - x0.X;
-                int ylength = points[i].Y - x0.Y;
-                float totLength = (float)Math.Sqrt(xlength * xlength + ylength * ylength);
-                float angle = (float)Math.Asin(ylength / totLength);
-                polarCoords[polarCoordIndex] = new Vector(angle, totLength);
-                polarCoordIndex++;
-            }
-
-            int nmax = 7;
-            float M = polarCoordIndex;
-            Vector[] Cn = new Vector[nmax];
-
-            float sumX = 0;
-            float sumY = 0;
-
-            for (int m = 0; m < M; m++) //the mth point in the list
-            {
-                sumX += (float)polarCoords[m].X;
-                sumY += (float)polarCoords[m].Y;
-            }
-
-            Cn[0] = new Vector(1 / M * sumX, 1 / M * sumY);
-
-            sumX = 0;
-            sumY = 0;
-
-            for (int n = 1; n < nmax; n++) //n of cn
-            {
-                for (int m = 0; m < M; m++) //the mth point in the list
-                {
-                    double inCosSin = (1 / M) * (2 * Pi * n * m);
-                    sumX += (float)(polarCoords[m].X * Math.Cos(inCosSin) + polarCoords[m].Y * Math.Sin(inCosSin));
-                    sumY += (float)(polarCoords[m].Y * Math.Cos(inCosSin) - polarCoords[m].X * Math.Sin(inCosSin));
-
-                }
-                Cn[n] = new Vector(1 / M * sumX, 1 / M * sumY);
-            }
-
-            float[] CnReal = new float[nmax];
-            float[] CnImag = new float[nmax];
-            for (int n = 0; n < nmax; n++)
-            {
-                CnReal[n] = (float)Cn[n].X;
-                CnImag[n] = (float)Cn[n].Y;
-            }
-            //Vector ReC0 = 1 / polarCoordIndex *
-            chart1.Series[0].Points.DataBindY(CnReal);
-            chart1.Series[1].Points.DataBindY(CnImag);
-            return Cn;
-        }
+       
 
 
 
@@ -394,14 +369,6 @@ namespace INFOIBV
 
        
 
-        private void FourierRadio_CheckedChanged(object sender, EventArgs e)
-        {
-            if (FourierRadio.Checked)
-                textBox1.ReadOnly = false;
-            else
-                textBox1.ReadOnly = true;
-
-        }
 
         void ApplyEdgeDetection()
         {
@@ -416,8 +383,8 @@ namespace INFOIBV
             {
                 for (int y = halfboxsize; y < InputImage.Size.Height - halfboxsize; y++)
                 {
-                    float u = CalculateNewColor(x, y, Hx, halfboxsize, false) / 8; //apply Hx to the image pixel
-                    float v = CalculateNewColor(x, y, Hy, halfboxsize, false) / 8; //apply Hy to the image pixel
+                    float u = CalculateNewColor(x, y, Hx, halfboxsize, Image, false) / 8; //apply Hx to the image pixel
+                    float v = CalculateNewColor(x, y, Hy, halfboxsize, Image, false) / 8; //apply Hy to the image pixel
 
 
                     int edgeStrength = (int)Math.Sqrt(u * u + v * v); //calculate edgestrength by calculating the length of vector [Hx, Hy]
@@ -454,10 +421,6 @@ namespace INFOIBV
 
         }
 
-        private void FourierSamples_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void ValueRadio_CheckedChanged(object sender, EventArgs e)
         {
@@ -474,6 +437,11 @@ namespace INFOIBV
         private void thresholdTrackbar_Scroll(object sender, EventArgs e)
         {
             thresholdValue.Text = thresholdTrackbar.Value.ToString();
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 
