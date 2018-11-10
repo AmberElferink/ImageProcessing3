@@ -542,6 +542,41 @@ namespace INFOIBV
             return 0; //  (* Orientation is neutral aka collinear  *)
         }
 
+        // This function draws points in the original image based on a provided list of points, the position of the upperleft corner of the bounding box and a state describing what the object is.
+        void crossesInImage(List<drawPoint> point, drawPoint min, int state)
+        {
+            int R = 0;
+            int G = 0;
+            int B = 0;
+            // We use green pixels for state 1 (pointing hand), yellow pixels for state 2 (spread hand), and red pixels for state 3 (unidentified object).
+            if (state == 1 || state == 2)
+                G = 255;
+            if (state == 2 || state == 3)
+                R = 255;
+
+            // We copy the original image and then add pixels for each point in the list.
+            for (int i = 0; i < InputImage.Size.Width; i++)
+            {
+                for (int j = 0; j < InputImage.Size.Height; j++)
+                {
+                    newImage[i, j] = Image[i, j];
+                }
+            }
+            Color stateColor = Color.FromArgb(R, G, B);
+            foreach (var ele in point)
+            {
+                newImage[min.X + ele.X, min.Y + ele.Y] = stateColor;
+                if (min.X + ele.X + 1 <= InputImage.Size.Width && min.Y + ele.Y + 1 <= InputImage.Size.Height)
+                    newImage[min.X + ele.X + 1, min.Y + ele.Y + 1] = stateColor;
+                if (min.X + ele.X - 1 >= 0 && min.Y + ele.Y + 1 <= InputImage.Size.Height)
+                    newImage[min.X + ele.X - 1, min.Y + ele.Y + 1] = stateColor;
+                if (min.X + ele.X + 1 <= InputImage.Size.Width && min.Y + ele.Y - 1 >= 0)
+                    newImage[min.X + ele.X + 1, min.Y + ele.Y - 1] = stateColor;
+                if (min.X + ele.X - 1 >= 0 && min.Y + ele.Y - 1 >= 0)
+                    newImage[min.X + ele.X - 1, min.Y + ele.Y - 1] = stateColor;
+            }
+        }
+
 
         //-------------------------------------Convex hull defects-----------------------------------
         //finds the inner 'hull' corners of the hand.
