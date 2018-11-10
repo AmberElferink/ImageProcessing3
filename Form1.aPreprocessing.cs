@@ -348,7 +348,7 @@ namespace INFOIBV
             maxy = 0;
             regionCount = int.MaxValue;
             currentRegions = int.MaxValue;
-            optimalLabel = new int[InputImage.GetLength(0), InputImage.GetLength(1)];
+            optimalLabel = new bool[InputImage.GetLength(0), InputImage.GetLength(1)];
 
             // Allereerst wordt de inputimage grijs gemaakt en gekopieerd naar een aparte color[,] array.
             greyscaleImage = ApplyGreyscale(InputImage);
@@ -380,9 +380,10 @@ namespace INFOIBV
             {
                 for (int y = 0; y < maxy - miny; y++)
                 {
-                    int labelColor = 255 - optimalLabel[x + minx, y + miny];
-                    Color updatedColor = Color.FromArgb(labelColor, labelColor, labelColor);
-                    boundingBox[x, y] = updatedColor;
+                    if (optimalLabel[x + minx, y + miny])
+                        boundingBox[x, y] = getForegroundColor();
+                    else
+                        boundingBox[x, y] = getBackgroundColor();
                 }
             }
             RightAsInput.Checked = false;
@@ -397,6 +398,8 @@ namespace INFOIBV
         {
             // Region labeling maakt een nieuwe array aan die een border van 1 pixel meer heeft vergeleken met de originele afbeelding
             // Dit is om te zorgen dat de calculaties geen error geven bij foreground check van de afbeelding aan de randen
+            Color background = getBackgroundColor();
+            Color foreground = getForegroundColor();
             int[,] label = new int[InputImage.GetLength(0) + 2, InputImage.GetLength(1) + 2];
             int labelIndex = 1;
             bool isLabeled = false;
@@ -409,7 +412,7 @@ namespace INFOIBV
                     // Zo ja, dan krijgt de pixel deze waarde. Mocht dit meerdere keren gebeuren, dan wordt er een conflict genoteerd.
                     // Zo niet, dan wordt een nieuwe waarde aangemaakt en krijgt de pixel deze waarde.
                     // Mocht er trouwens een pixel gedetecteerd worden met alpha value 0 (doorzichtig), dan wordt die tot de achtergrond gerekend.
-                    if (InputImage[x - 1, y - 1].R == 0)
+                    if (InputImage[x - 1, y - 1] == foreground)
                     {
                         isLabeled = false;
                         drawPoint conflictCheck = new drawPoint(x, y);
@@ -531,7 +534,7 @@ namespace INFOIBV
                     {
                         if (label[x, y] == largestLabel)
                         {
-                            optimalLabel[x - 1, y - 1] = 255;
+                            optimalLabel[x - 1, y - 1] = true;
                             if (x - 1 < minx)
                             {
                                 minx = x - 1 - 10;

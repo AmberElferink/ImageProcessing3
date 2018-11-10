@@ -543,11 +543,12 @@ namespace INFOIBV
         }
 
         // This function draws points in the original image based on a provided list of points, the position of the upperleft corner of the bounding box and a state describing what the object is.
-        void crossesInImage(drawPoint[] point, drawPoint min, int state, Color[,] InputImage)
+        Color[,] crossesInImage(drawPoint[] point, drawPoint min, int state, Color[,] InputImage)
         {
             int R = 0;
             int G = 0;
             int B = 0;
+            Color[,] finalImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
             // We use green pixels for state 1 (pointing hand), yellow pixels for state 2 (spread hand), and red pixels for state 3 (unidentified object).
             if (state == 1 || state == 2)
                 G = 255;
@@ -555,25 +556,26 @@ namespace INFOIBV
                 R = 255;
 
             // We copy the original image and then add pixels for each point in the list.
-            for (int i = 0; i < InputImage.GetLength(0); i++)
+            for (int x = 0; x < InputImage.GetLength(0); x++)
             {
-                for (int j = 0; j < InputImage.GetLength(1); j++)
+                for (int y = 0; y < InputImage.GetLength(1); y++)
                 {
-                    newImage[i, j] = Image[i, j];
+                    finalImage[x, y] = Image[x, y];
                 }
             }
             Color stateColor = Color.FromArgb(R, G, B);
             for (int i = 0; i < point.Length; i++) {
-                newImage[min.X + point[i].X, min.Y + point[i].Y] = stateColor;
+                finalImage[min.X + point[i].X, min.Y + point[i].Y] = stateColor;
                 if (min.X + point[i].X + 1 <= InputImage.GetLength(0) && min.Y + point[i].Y + 1 <= InputImage.GetLength(1))
-                    newImage[min.X + point[i].X + 1, min.Y + point[i].Y + 1] = stateColor;
+                    finalImage[min.X + point[i].X + 1, min.Y + point[i].Y + 1] = stateColor;
                 if (min.X + point[i].X - 1 >= 0 && min.Y + point[i].Y + 1 <= InputImage.GetLength(1))
-                    newImage[min.X + point[i].X - 1, min.Y + point[i].Y + 1] = stateColor;
+                    finalImage[min.X + point[i].X - 1, min.Y + point[i].Y + 1] = stateColor;
                 if (min.X + point[i].X + 1 <= InputImage.GetLength(0) && min.Y + point[i].Y - 1 >= 0)
-                    newImage[min.X + point[i].X + 1, min.Y + point[i].Y - 1] = stateColor;
+                    finalImage[min.X + point[i].X + 1, min.Y + point[i].Y - 1] = stateColor;
                 if (min.X + point[i].X - 1 >= 0 && min.Y + point[i].Y - 1 >= 0)
-                    newImage[min.X + point[i].X - 1, min.Y + point[i].Y - 1] = stateColor;
+                    finalImage[min.X + point[i].X - 1, min.Y + point[i].Y - 1] = stateColor;
             }
+            return finalImage;
         }
 
 
