@@ -523,11 +523,11 @@ namespace INFOIBV
            
         }
 
-        void drawPointsToImage(drawPoint[] hull)
+        void drawPointsToImage(drawPoint[] hull, Color[,] InputImage)
         {
-            for (int i = 0; i < InputImage.Size.Width; i++)
+            for (int i = 0; i < InputImage.GetLength(0); i++)
             {
-                for (int j = 0; j < InputImage.Size.Height; j++)
+                for (int j = 0; j < InputImage.GetLength(1); j++)
                 {
                     newImage[i, j] = Color.FromArgb(255, 255, 255);
                 }
@@ -553,7 +553,7 @@ namespace INFOIBV
         }
 
         // This function draws points in the original image based on a provided list of points, the position of the upperleft corner of the bounding box and a state describing what the object is.
-        void crossesInImage(List<drawPoint> point, drawPoint min, int state)
+        void crossesInImage(drawPoint[] point, drawPoint min, int state, Color[,] InputImage)
         {
             int R = 0;
             int G = 0;
@@ -565,25 +565,24 @@ namespace INFOIBV
                 R = 255;
 
             // We copy the original image and then add pixels for each point in the list.
-            for (int i = 0; i < InputImage.Size.Width; i++)
+            for (int i = 0; i < InputImage.GetLength(0); i++)
             {
-                for (int j = 0; j < InputImage.Size.Height; j++)
+                for (int j = 0; j < InputImage.GetLength(1); j++)
                 {
                     newImage[i, j] = Image[i, j];
                 }
             }
             Color stateColor = Color.FromArgb(R, G, B);
-            foreach (var ele in point)
-            {
-                newImage[min.X + ele.X, min.Y + ele.Y] = stateColor;
-                if (min.X + ele.X + 1 <= InputImage.Size.Width && min.Y + ele.Y + 1 <= InputImage.Size.Height)
-                    newImage[min.X + ele.X + 1, min.Y + ele.Y + 1] = stateColor;
-                if (min.X + ele.X - 1 >= 0 && min.Y + ele.Y + 1 <= InputImage.Size.Height)
-                    newImage[min.X + ele.X - 1, min.Y + ele.Y + 1] = stateColor;
-                if (min.X + ele.X + 1 <= InputImage.Size.Width && min.Y + ele.Y - 1 >= 0)
-                    newImage[min.X + ele.X + 1, min.Y + ele.Y - 1] = stateColor;
-                if (min.X + ele.X - 1 >= 0 && min.Y + ele.Y - 1 >= 0)
-                    newImage[min.X + ele.X - 1, min.Y + ele.Y - 1] = stateColor;
+            for (int i = 0; i < point.Length; i++) {
+                newImage[min.X + point[i].X, min.Y + point[i].Y] = stateColor;
+                if (min.X + point[i].X + 1 <= InputImage.GetLength(0) && min.Y + point[i].Y + 1 <= InputImage.GetLength(1))
+                    newImage[min.X + point[i].X + 1, min.Y + point[i].Y + 1] = stateColor;
+                if (min.X + point[i].X - 1 >= 0 && min.Y + point[i].Y + 1 <= InputImage.GetLength(1))
+                    newImage[min.X + point[i].X - 1, min.Y + point[i].Y + 1] = stateColor;
+                if (min.X + point[i].X + 1 <= InputImage.GetLength(0) && min.Y + point[i].Y - 1 >= 0)
+                    newImage[min.X + point[i].X + 1, min.Y + point[i].Y - 1] = stateColor;
+                if (min.X + point[i].X - 1 >= 0 && min.Y + point[i].Y - 1 >= 0)
+                    newImage[min.X + point[i].X - 1, min.Y + point[i].Y - 1] = stateColor;
             }
         }
 
@@ -618,7 +617,7 @@ namespace INFOIBV
             }
 
 
-            drawPoint centroid = FindCentroid(allCorners);
+            drawPoint centroid = FindCentroid(allCorners, InputImage);
 
             for (int i = 0; i < convexCorners.Length - 1; i++)
             {
@@ -631,8 +630,8 @@ namespace INFOIBV
             convexAndDefects.Add(convexCorners[convexCorners.Length - 1]);
             convexAndDefects.Add(WalkBetwConvexPoints(convexCorners.Length - 1, 0, convexCorners, tracedBoundary, 6, centroid));
             drawPoint[] convexAndDefectsArray  = RemoveRedundantPoints(convexAndDefects);
-            drawPointsToImage(convexAndDefectsArray);
-            
+            drawPointsToImage(convexAndDefectsArray, InputImage);
+
             return convexAndDefectsArray;
 
         }
@@ -719,7 +718,7 @@ namespace INFOIBV
             return (diffX * diffX + diffY * diffY);
         }
 
-        drawPoint FindCentroid(drawPoint[] input)
+        drawPoint FindCentroid(drawPoint[] input, Color[,] InputImage)
         {
             int totalX = 0;
             int totalY = 0;
@@ -735,17 +734,17 @@ namespace INFOIBV
         }
 
 
-        public static List<float> cornerOfConvex(List<drawPoint> point)
+        float[] cornerOfConvex(drawPoint[] point)
         {
-            List<float> angleList = new List<float>();
-            Console.WriteLine(point.Count);
-            for (int i = 0; i < point.Count; i++)
+            float[] angleList = new float[point.Length];
+            Console.WriteLine(point.Length);
+            for (int i = 0; i < point.Length; i++)
             {
                 int previousPoint = i - 1;
                 if (i - 1 < 0)
-                    previousPoint = point.Count - 1;
+                    previousPoint = point.Length - 1;
                 int nextPoint = i + 1;
-                if (i + 1 > point.Count - 1)
+                if (i + 1 > point.Length - 1)
                     nextPoint = 0;
                 Vector vector1 = new Vector(point[i].X - point[previousPoint].X, point[i].Y - point[previousPoint].Y);
                 double vector1length = Math.Sqrt((vector1.X * vector1.X) + (vector1.Y * vector1.Y));
@@ -755,9 +754,25 @@ namespace INFOIBV
                 double vec1vec2length = vector1length * vector2length;
                 double cosineRule = dot / vec1vec2length;
                 float angle = (float)Math.Acos(cosineRule);
-                angleList.Add(angle);
+                angleList[i] = angle;
             }
             return angleList;
+        }
+
+        int determineState(float[] angleList)
+        {
+            int fingers = 0;
+            for (int i = 0; i < angleList.Length; i++)
+            {
+                if (angleList[i] < 0.2)
+                    fingers++;
+            }
+            if (fingers == 1)
+                return 1;
+            else if (fingers > 1)
+                return 2;
+            else
+                return 3;
         }
 
 
