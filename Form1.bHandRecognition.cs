@@ -659,8 +659,8 @@ namespace INFOIBV
 
         drawPoint WalkBetwConvexPoints(int convexCornerIndex1, int convexCornerIndex2, drawPoint[] convexCorners, drawPoint[] tracedBoundary, int maxDiff, drawPoint centroid)
         {
-            int startIndex = SearchPointInArray(convexCorners[convexCornerIndex1], tracedBoundary, 9);
-            int endIndex = SearchPointInArray(convexCorners[convexCornerIndex2], tracedBoundary, 9);
+            int endIndex = SearchPointInArray(convexCorners[convexCornerIndex1], tracedBoundary, 9);
+            int startIndex = SearchPointInArray(convexCorners[convexCornerIndex2], tracedBoundary, 9);
             if (startIndex == -1)
                 throw new Exception("startingPoint is not found within the traced boundary");
             if (endIndex == -1)
