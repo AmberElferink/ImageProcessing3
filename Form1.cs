@@ -88,6 +88,22 @@ namespace INFOIBV
                     ApplyGreyscale();
                 else if (preprocessingRadio.Checked)
                     PreprocessingPipeline();
+                else if (regionLabelRadio.Checked)
+                {
+                    List<drawPoint> testlist = new List<drawPoint>();
+                    drawPoint min = new drawPoint(272, 77);
+                    drawPoint test1 = new drawPoint(9, 184);
+                    testlist.Add(test1);
+                    drawPoint test2 = new drawPoint(82, 184);
+                    testlist.Add(test2);
+                    drawPoint test3 = new drawPoint(31, 28);
+                    testlist.Add(test3);
+                    drawPoint test4 = new drawPoint(19, 10);
+                    testlist.Add(test4);
+                    drawPoint test5 = new drawPoint(12, 32);
+                    testlist.Add(test5);
+                    drawPointsInImage(testlist, min, 1);
+                }
 
                toOutputBitmap();
                 //greyscale, region labelling, opening closing (dus erosion dilation), 
