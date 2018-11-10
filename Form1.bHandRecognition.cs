@@ -59,7 +59,7 @@ namespace INFOIBV
             if (isContourPix(backgrC, currentPoint, InputImage))
             {
                 contourPixels.Add(currentPoint);
-                if ((contourPixels.Count > 10) && SameApprPoint(contourPixels[0], currentPoint, 1))
+                if ((contourPixels.Count > 10) && SameApprPoint(contourPixels[0], currentPoint, 3))
                 return contourPixels; //the startingpoint has been reached.
 
                 //This is N8 chain code, for N4 only consider the 4 pixels straight up, below, left and right
@@ -660,8 +660,8 @@ namespace INFOIBV
 
         drawPoint WalkBetwConvexPoints(int convexCornerIndex1, int convexCornerIndex2, drawPoint[] convexCorners, drawPoint[] tracedBoundary, int maxDiff, drawPoint centroid)
         {
-            int endIndex = SearchPointInArray(convexCorners[convexCornerIndex1], tracedBoundary, 9);
-            int startIndex = SearchPointInArray(convexCorners[convexCornerIndex2], tracedBoundary, 9);
+            int endIndex = SearchPointInArray(convexCorners[convexCornerIndex1], tracedBoundary, 12);
+            int startIndex = SearchPointInArray(convexCorners[convexCornerIndex2], tracedBoundary, 12);
             if (startIndex == -1)
                 throw new Exception("startingPoint is not found within the traced boundary");
             if (endIndex == -1)
@@ -761,12 +761,19 @@ namespace INFOIBV
             return angleList;
         }
 
-        int determineObject(float[] angleList)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="angleList">Angles to check for</param>
+        /// <param name="cornerThreshold">threshold in degrees. Lower than cornerthreshold is seen as finger</param>
+        /// <returns>returns 1: pointing finger, 2: spread hand, 3: unidentified object</returns>
+        int determineObject(float[] angleList, float cornerThreshold)
         {
             int fingers = 0;
+            float radian = cornerThreshold * Pi / 180;
             for (int i = 0; i < angleList.Length; i++)
             {
-                if (angleList[i] < 0.2)
+                if (angleList[i] < radian)
                     fingers++;
             }
             if (fingers == 1)

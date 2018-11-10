@@ -79,9 +79,9 @@ namespace INFOIBV
                 for (int y = 0; y < inputImageH; y++)
                 {
                     if (InputImage[x, y].R < thresholdLimit)
-                        updatedColor = backGroundColor;
-                    else
                         updatedColor = foreGroundColor;
+                    else
+                        updatedColor = backGroundColor;
                     OutputImage[x, y] = updatedColor;
 
                 }

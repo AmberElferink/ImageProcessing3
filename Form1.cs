@@ -103,7 +103,7 @@ namespace INFOIBV
                     drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
                     float[] angleList = cornerOfConvex(conDefList);
                     drawPoint leftUpperBoundingBox = new drawPoint(leftUpperBbX, leftUpperBbY);
-                    Color[,] finalImage = crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList), greyscaleImage);
+                    toOutputBitmap( crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 13), greyscaleImage));
                     //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                 }
                 else if (ErosionRadio.Checked)
