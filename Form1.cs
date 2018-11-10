@@ -54,7 +54,7 @@ namespace INFOIBV
             }
             if (BoundaryRadio.Checked)
             {
-                drawPoint[] boundary = TraceBoundary(Image);
+                drawPoint[] boundary = TraceBoundary(Image, getBackgroundColor());
                 kernelInput.Text = WritedrawPointArr(boundary);
                 BoundaryToOutput(boundary, Image);
             }
@@ -110,7 +110,21 @@ namespace INFOIBV
             return cornerArray;
         }
 
-        
+        Color getBackgroundColor ()
+        {
+            if (checkBlackBackground.Checked)
+                return Color.FromArgb(255, 0, 0, 0);
+            
+            return Color.FromArgb(255, 255, 255, 255);
+        }
+
+        Color getForegroundColor()
+        {
+            if (checkBlackBackground.Checked)
+                return Color.FromArgb(255, 255, 255, 255);
+
+            return Color.FromArgb(255, 0, 0, 0);
+        }
 
 
         String WritedrawVectArr(Vector[] Cn)
@@ -151,7 +165,8 @@ namespace INFOIBV
                 MessageBox2.Text = "please enter an integer";
             }
 
-            drawPoint[] points = TraceBoundary(Image);
+
+            drawPoint[] points = TraceBoundary(Image, getBackgroundColor());
             drawPoint x0 = new drawPoint(-1, -1);
             Vector[] polarCoords = new Vector[points.Length / amountSamples + 1];
 
