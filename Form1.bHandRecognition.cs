@@ -701,7 +701,30 @@ namespace INFOIBV
         }
 
 
-
+        public static List<float> cornerOfConvex(List<drawPoint> point)
+        {
+            List<float> angleList = new List<float>();
+            Console.WriteLine(point.Count);
+            for (int i = 0; i < point.Count; i++)
+            {
+                int previousPoint = i - 1;
+                if (i - 1 < 0)
+                    previousPoint = point.Count - 1;
+                int nextPoint = i + 1;
+                if (i + 1 > point.Count - 1)
+                    nextPoint = 0;
+                Vector vector1 = new Vector(point[i].X - point[previousPoint].X, point[i].Y - point[previousPoint].Y);
+                double vector1length = Math.Sqrt((vector1.X * vector1.X) + (vector1.Y * vector1.Y));
+                Vector vector2 = new Vector(point[i].X - point[nextPoint].X, point[i].Y - point[nextPoint].Y);
+                double vector2length = Math.Sqrt((vector2.X * vector2.X) + (vector2.Y * vector2.Y));
+                double dot = (vector1.X * vector2.X) + (vector1.Y * vector2.Y);
+                double vec1vec2length = vector1length * vector2length;
+                double cosineRule = dot / vec1vec2length;
+                float angle = (float)Math.Acos(cosineRule);
+                angleList.Add(angle);
+            }
+            return angleList;
+        }
 
 
 
