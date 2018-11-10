@@ -97,14 +97,18 @@ namespace INFOIBV
                     
                 else if (pipelineRadio.Checked)
                 {
-                    Color[,] pipelineImage = PreprocessingPipeline(Image);
-                    CreateSobelKernel(0, ref Kx, ref Ky);
-                    List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, pipelineImage);
-                    drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
-                    float[] angleList = cornerOfConvex(conDefList);
-                    drawPoint leftUpperBoundingBox = new drawPoint(leftUpperBbX, leftUpperBbY);
-                    toOutputBitmap( crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 13), greyscaleImage));
-                    //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
+                    try
+                    {
+                        Color[,] pipelineImage = PreprocessingPipeline(Image);
+                        CreateSobelKernel(0, ref Kx, ref Ky);
+                        List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, pipelineImage);
+                        drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
+                        float[] angleList = cornerOfConvex(conDefList);
+                        drawPoint leftUpperBoundingBox = new drawPoint(leftUpperBbX, leftUpperBbY);
+                        toOutputBitmap(crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 13), greyscaleImage));
+                        //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
+                    }
+                    catch (Exception error) { MessageBox2.Text = error.Message; }
                 }
                 else if (ErosionRadio.Checked)
                     toOutputBitmap(ApplyErosionDilationFilter(Image, true));
