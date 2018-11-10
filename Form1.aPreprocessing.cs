@@ -53,7 +53,7 @@ namespace INFOIBV
             {
                 for (int y = 0; y < InputImage.GetLength(1); y++)
                 {
-                    Color pixelColor = Image[x, y];                                 // Get the pixel color at coordinate (x,y)
+                    Color pixelColor = InputImage[x, y];                                 // Get the pixel color at coordinate (x,y)
                     int grey = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;    // aanmaken grijswaarde op basis van RGB-values
                     Color updatedColor = Color.FromArgb(grey, grey, grey);          // toepassen grijswaarde
                     greyscaleImage[x, y] = updatedColor;
@@ -102,9 +102,9 @@ namespace INFOIBV
         {
             int[] histogram = new int[256];     //histogram aanmaken, alow en ahigh initialiseren
 
-            for (int x = 0; x < InputImage.Size.Width; x++)
+            for (int x = 0; x < image.GetLength(0); x++)
             {
-                for (int y = 0; y < InputImage.Size.Height; y++)
+                for (int y = 0; y < image.GetLength(1); y++)
                 {
                     Color pixelColor = image[x, y];                                 // Get the pixel color at coordinate (x,y)
                     int grey = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;    // aanmaken grijswaarde op basis van RGB-values
@@ -195,7 +195,7 @@ namespace INFOIBV
         /// <summary>
         /// Dilates a greyscale image using the provided matrix as a structuring element.
         /// </summary>
-        int CalculateDilation(int x, int y, int[,] matrix, int halfBoxSize, bool isMinMax)
+        int CalculateDilation(Color[,] InputImage, int x, int y, int[,] matrix, int halfBoxSize, bool isMinMax)
         {
             int newColor = 0;
             for (int a = (halfBoxSize * -1); a <= halfBoxSize; a++)
@@ -203,9 +203,9 @@ namespace INFOIBV
                 for (int b = (halfBoxSize * -1); b <= halfBoxSize; b++)
                 {
                     // The maximum value of the structuring element added to the surrounding pixels is chosen and returned as the new greyscale value for the hotspot.
-                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && (Image[x + a, y + b].R + matrix[a + halfBoxSize, b + halfBoxSize]) > newColor)
+                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && (InputImage[x + a, y + b].R + matrix[a + halfBoxSize, b + halfBoxSize]) > newColor)
                     {
-                        newColor = clamp(Image[x + a, y + b].R + matrix[a + halfBoxSize, b + halfBoxSize]);
+                        newColor = clamp(InputImage[x + a, y + b].R + matrix[a + halfBoxSize, b + halfBoxSize]);
                     }
                 }
             }
@@ -218,7 +218,7 @@ namespace INFOIBV
         /// <summary>
         /// Erodes a greyscale image using the provided matrix as a structuring element.
         /// </summary>
-        int CalculateErosion(int x, int y, int[,] matrix, int halfBoxSize, bool isMinMax)
+        int CalculateErosion(Color[,] InputImage, int x, int y, int[,] matrix, int halfBoxSize, bool isMinMax)
         {
             int newColor = int.MaxValue;
             for (int a = (halfBoxSize * -1); a <= halfBoxSize; a++)
@@ -226,9 +226,9 @@ namespace INFOIBV
                 for (int b = (halfBoxSize * -1); b <= halfBoxSize; b++)
                 {
                     // The minimum value of the structuring element subtracted from the surrounding pixels is chosen and returned as the new greyscale value for the hotspot.
-                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && (Image[x + a, y + b].R - matrix[a + halfBoxSize, b + halfBoxSize]) < newColor)
+                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && (InputImage[x + a, y + b].R - matrix[a + halfBoxSize, b + halfBoxSize]) < newColor)
                     {
-                        newColor = clamp(Image[x + a, y + b].R - matrix[a + halfBoxSize, b + halfBoxSize]);
+                        newColor = clamp(InputImage[x + a, y + b].R - matrix[a + halfBoxSize, b + halfBoxSize]);
                     }
 
                 }
@@ -292,8 +292,8 @@ namespace INFOIBV
                         // greyscale images: greyscale erosion/dilation and apply new color
                         else
                         {
-                            if (isErosion) newColor1 = CalculateErosion(x, y, matrix, halfBoxSize, false);
-                            else newColor1 = CalculateDilation(x, y, matrix, halfBoxSize, false);
+                            if (isErosion) newColor1 = CalculateErosion(InputImage, x, y, matrix, halfBoxSize, false);
+                            else newColor1 = CalculateDilation(InputImage, x, y, matrix, halfBoxSize, false);
                             Color updatedColor = Color.FromArgb(newColor1, newColor1, newColor1);
                             OutputImage[x, y] = updatedColor;
                         }
@@ -310,7 +310,7 @@ namespace INFOIBV
         /// <summary>
         /// Apply an opening or closing filter to an input image using the matrix provided in textbox1 as a structuring element.
         /// </summary>
-        void ApplyOpeningClosingFilter(Color[,] InputImage, bool isOpening)
+        Color[,] ApplyOpeningClosingFilter(Color[,] InputImage, bool isOpening)
         {
             Color[,] OutputImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
             if (isOpening) OutputImage = ApplyErosionDilationFilter(InputImage, true);
@@ -318,6 +318,7 @@ namespace INFOIBV
 
             if (isOpening) OutputImage = ApplyErosionDilationFilter(OutputImage, false);
             else OutputImage = ApplyErosionDilationFilter(OutputImage, true);
+            return OutputImage;
         }
 
         Color[,] PreprocessingPipeline(Color[,] InputImage)
@@ -344,13 +345,11 @@ namespace INFOIBV
             // Dit gaat door totdat de bounding box niet meer geupdated wordt en er 3 extra regions zijn ontdekt (gebeurt vanzelf door ruis).
             while (regionCount - 3 <= currentRegions)
             {
-                ApplyThresholdFilter(greyscale);
-                RightAsInput.Checked = true;
-                resetForApply();
-                ApplyOpeningClosingFilter(true);
-                greyscale++;
-                RegionLabeling(greyscale, Image);
+                Color[,] thresholdImage = ApplyThresholdFilter(greyscaleImage, greyscale);
+                Color[,] OpeningImage = ApplyOpeningClosingFilter(thresholdImage, true);
+                RegionLabeling(greyscale, OpeningImage);
                 Console.WriteLine("regionCount: " + regionCount + " at greyscale " + greyscale + ", currentRegions: " + currentRegions);
+                greyscale++;
             }
 
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
@@ -369,9 +368,8 @@ namespace INFOIBV
             RightAsInput.Checked = false;
             return boundingBox;
 
-            toOutputBitmap();
-            Console.WriteLine("(Minx, miny): (" + minx + ", " + miny + ") - (Maxx, maxy): (" + maxx + ", " + maxy + ")");
-            Console.WriteLine("Optimal greyscale threshold value: " + optimalThreshold);
+            //Console.WriteLine("(Minx, miny): (" + minx + ", " + miny + ") - (Maxx, maxy): (" + maxx + ", " + maxy + ")");
+            //Console.WriteLine("Optimal greyscale threshold value: " + optimalThreshold);
         }
 
         void RegionLabeling(int greyscale, Color[,] InputImage)
