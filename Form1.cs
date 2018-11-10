@@ -64,8 +64,9 @@ namespace INFOIBV
             {
                 int n = 0;
                 CreateSobelKernel(n, ref Kx, ref Ky);
-                HarrisCornerDetection(Kx, Ky, Image);
-
+                List<Corner> corners = HarrisCornerDetection(Kx, Ky, Image);
+                CornersToImage(corners);
+                kernelInput.Text = WritedrawPointArr(CornerListToArray(corners));
             }
 
             else

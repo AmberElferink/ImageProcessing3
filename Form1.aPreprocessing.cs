@@ -34,7 +34,7 @@ namespace INFOIBV
                 InputImage = new Bitmap(file);                              // Create new Bitmap from file
 
                 resetForApply();
-                Color[,] croppedImage = CutSubImageBox(Image, startx, starty, startWidth, startHeight);
+                Color[,] croppedImage = CropImage(Image, startx, starty, startWidth, startHeight);
                 InputImage = new Bitmap(croppedImage.GetLength(0), croppedImage.GetLength(1));
                 for (int x = 0; x < croppedImage.GetLength(0); x++)
                     for (int y = 0; y < croppedImage.GetLength(1); y++)
@@ -79,9 +79,9 @@ namespace INFOIBV
                 for (int y = 0; y < inputImageH; y++)
                 {
                     if (InputImage[x, y].R < thresholdLimit)
-                        updatedColor = foreGroundColor;
+                        updatedColor = backGroundColor;
                     else
-                        updatedColor = backGroundColor; 
+                        updatedColor = foreGroundColor;
                     OutputImage[x, y] = updatedColor;
 
                 }
@@ -583,7 +583,7 @@ namespace INFOIBV
         /// <param name="width">new width</param>
         /// <param name="height">new height</param>
         /// <returns></returns>
-        Color[,] CutSubImageBox(Color[,] fullImage, int u, int v, int width, int height)
+        Color[,] CropImage(Color[,] fullImage, int u, int v, int width, int height)
         {
             if (width >= fullImage.GetLength(0))
                 return fullImage;

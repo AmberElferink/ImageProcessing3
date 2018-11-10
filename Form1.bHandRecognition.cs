@@ -59,7 +59,7 @@ namespace INFOIBV
             if (isContourPix(backgrC, currentPoint, InputImage))
             {
                 contourPixels.Add(currentPoint);
-                if ((contourPixels.Count > 10) && SameApprPoint(contourPixels[0], currentPoint))
+                if ((contourPixels.Count > 10) && SameApprPoint(contourPixels[0], currentPoint, 1))
                 return contourPixels; //the startingpoint has been reached.
 
                 //This is N8 chain code, for N4 only consider the 4 pixels straight up, below, left and right
