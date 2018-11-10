@@ -28,7 +28,7 @@ namespace INFOIBV
         int currentRegions;
         int regionCount;
         int optimalThreshold;
-        int[,] optimalLabel;
+        bool[,] optimalLabel;
 
 
         public INFOIBV()
@@ -102,7 +102,7 @@ namespace INFOIBV
                     drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
                     float[] angleList = cornerOfConvex(conDefList);
                     drawPoint min = new drawPoint(minx, miny);
-                    crossesInImage(conDefList, min, determineState(angleList), greyscaleImage);
+                    Color[,] finalImage = crossesInImage(conDefList, min, determineState(angleList), greyscaleImage);
                     //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                 }
                 else if (ErosionRadio.Checked)
