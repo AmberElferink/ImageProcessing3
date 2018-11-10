@@ -79,13 +79,15 @@ namespace INFOIBV
                     ApplyOpeningClosingFilter(false);
                 else if (ValueRadio.Checked)
                     kernelInput.Text = "Unique values: " + valueCount(generateHistogram(Image));
-                else if (thresholdRadio.Checked)
-                    ApplyThresholdFilter(thresholdTrackbar.Value);
+                else if (thresholdRadio.Checked)       
+                    toOutputBitmap(ApplyThresholdFilter(Image, thresholdTrackbar.Value));
                 else if (edgeDetection.Checked)
                     ApplyEdgeDetection();
                 else if (findCentroid.Checked)
                 {
-                    try { drawPoint[] point = new drawPoint[1];
+                    try
+                    {
+                        drawPoint[] point = new drawPoint[1];
                         drawPoint centroid = FindCentroid(ColorArrayToDrawPoints(Image));
                         point[0] = centroid;
                         drawPointsToImage(point);
@@ -96,7 +98,7 @@ namespace INFOIBV
                 else if (greyscaleRadio.Checked)
                     ApplyGreyscale();
                 else if (preprocessingRadio.Checked)
-                    PreprocessingPipeline();
+                    PreprocessingPipeline(Image);
                 else if (pipelineRadio.Checked)
                 {
                     CreateSobelKernel(0, ref Kx, ref Ky);
@@ -105,7 +107,7 @@ namespace INFOIBV
                 }
                    
 
-               toOutputBitmap();
+               //toOutputBitmap(newImage);
                 //greyscale, region labelling, opening closing (dus erosion dilation), 
                 //weg: Fourier, complement WritedrawVectArr
 
@@ -252,7 +254,7 @@ namespace INFOIBV
         /// <summary>
         /// Generates an image in picturBox2 based on the color matrix newImage.
         /// </summary>
-        void toOutputBitmap()
+        void toOutputBitmap(Color[,] newImage)
         {
             //Image = newImage;
             // Copy array to output Bitmap
@@ -336,16 +338,16 @@ namespace INFOIBV
         /// <summary>
         /// Checks if a number is binary (used to check the valuecount of a histogram for binary images).
         /// </summary>
-        bool isBinary(int input)
+         Tuple<Color[,], Boolean> MaybeBinary(Color[,] InputImage, int input)
         {
             if (checkBinary.Checked)
             {
-                ApplyThresholdFilter();
-                return true;
+                InputImage = ApplyThresholdFilter(InputImage);
+                return new Tuple<Color[,], Boolean>(InputImage, true);
             }
 
-            if (input == 2) return true;
-            else return false;
+            if (input == 2) return new Tuple<Color[,], Boolean>(InputImage, true);
+            return new Tuple<Color[,], bool>(InputImage, false);
         }
 
 
