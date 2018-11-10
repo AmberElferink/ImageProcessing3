@@ -19,6 +19,7 @@ namespace INFOIBV
         float[,] Ky;
 
         // Variabelen die voor de preprocessing pipeline nodig zijn
+        Color[,] greyscaleImage;
         int minx;
         int miny;
         int maxx;
@@ -84,19 +85,24 @@ namespace INFOIBV
                     ApplyEdgeDetection();
                 else if (findCentroid.Checked)
                 {
-                    try { FindCentroid(ColorArrayToDrawPoints(Image)); }
+                    try { FindCentroid(ColorArrayToDrawPoints(Image), Image); }
                     catch (Exception error) { MessageBox2.Text = error.Message; }
                 }
 
                 else if (greyscaleRadio.Checked)
-                    ApplyGreyscale();
+                    ApplyGreyscale(Image);
                 else if (preprocessingRadio.Checked)
-                    PreprocessingPipeline();
+                    newImage = PreprocessingPipeline(Image);
                 else if (pipelineRadio.Checked)
                 {
+                    Color[,] pipelineImage = PreprocessingPipeline(Image);
                     CreateSobelKernel(0, ref Kx, ref Ky);
-                    List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, Image);
-                    kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), Image));
+                    List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, pipelineImage);
+                    drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
+                    float[] angleList = cornerOfConvex(conDefList);
+                    drawPoint min = new drawPoint(minx, miny);
+                    crossesInImage(conDefList, min, determineState(angleList), greyscaleImage);
+                    //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                 }
                    
 
@@ -222,6 +228,7 @@ namespace INFOIBV
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height); // Create new output image
             Image = new Color[InputImage.Size.Width, InputImage.Size.Height]; // Create array to speed-up operations (Bitmap functions are very slow)
             newImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
+            greyscaleImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
 
             // Setup progress bar
             progressBar.Visible = true;

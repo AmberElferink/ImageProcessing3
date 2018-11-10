@@ -46,19 +46,20 @@ namespace INFOIBV
         }
 
 
-        void ApplyGreyscale()
+        Color[,] ApplyGreyscale(Color[,] InputImage)
         {
-            for (int x = 0; x < InputImage.Size.Width; x++)
+            Color[,] greyscaleImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
+            for (int x = 0; x < InputImage.GetLength(0); x++)
             {
-                for (int y = 0; y < InputImage.Size.Height; y++)
+                for (int y = 0; y < InputImage.GetLength(1); y++)
                 {
                     Color pixelColor = Image[x, y];                                 // Get the pixel color at coordinate (x,y)
                     int grey = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;    // aanmaken grijswaarde op basis van RGB-values
                     Color updatedColor = Color.FromArgb(grey, grey, grey);          // toepassen grijswaarde
-                    newImage[x, y] = updatedColor;
-                    progressBar.PerformStep();
+                    greyscaleImage[x, y] = updatedColor;
                 }
             }
+            return greyscaleImage;
         }
 
 
@@ -338,27 +339,19 @@ namespace INFOIBV
             else ApplyErosionDilationFilter(true);
         }
 
-        void PreprocessingPipeline()
+        Color[,] PreprocessingPipeline(Color[,] InputImage)
         {
             // Variabelen die nodig zijn om de bounding box en region count worden geinitializeerd
-            minx = InputImage.Size.Width;
-            miny = InputImage.Size.Height;
+            minx = InputImage.GetLength(0);
+            miny = InputImage.GetLength(1);
             maxx = 0;
             maxy = 0;
             regionCount = int.MaxValue;
             currentRegions = int.MaxValue;
-            optimalLabel = new int[InputImage.Size.Width, InputImage.Size.Height];
+            optimalLabel = new int[InputImage.GetLength(0), InputImage.GetLength(1)];
 
             // Allereerst wordt de inputimage grijs gemaakt en gekopieerd naar een aparte color[,] array.
-            ApplyGreyscale();
-            Color[,] pipelineImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
-            for (int x = 0; x < InputImage.Size.Width; x++)
-            {
-                for (int y = 0; y < InputImage.Size.Height; y++)
-                {
-                    pipelineImage[x, y] = newImage[x, y];
-                }
-            }
+            greyscaleImage = ApplyGreyscale(InputImage);
             // Kernelinput en threshold start worden ook geinitialiseerd.
             kernelInput.Text = "0 0 0\r\n0 0 0\r\n0 0 0";
             int greyscale = 70;
@@ -370,82 +363,56 @@ namespace INFOIBV
             // Dit gaat door totdat de bounding box niet meer geupdated wordt en er 3 extra regions zijn ontdekt (gebeurt vanzelf door ruis).
             while (regionCount - 3 <= currentRegions)
             {
-                RightAsInput.Checked = false;
-                resetForApply();
-                for (int x = 0; x < InputImage.Size.Width; x++)
-                {
-                    for (int y = 0; y < InputImage.Size.Height; y++)
-                    {
-                        Image[x, y] = pipelineImage[x, y];
-                    }
-                }
                 ApplyThresholdFilter(greyscale);
                 RightAsInput.Checked = true;
                 resetForApply();
                 ApplyOpeningClosingFilter(true);
                 greyscale++;
-                RegionLabeling(greyscale);
-                Console.WriteLine("regionCount: " + regionCount + "at greyscale " + greyscale + ", currentRegions: " + currentRegions);
+                RegionLabeling(greyscale, Image);
+                Console.WriteLine("regionCount: " + regionCount + " at greyscale " + greyscale + ", currentRegions: " + currentRegions);
             }
 
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
             // De coordinaten van de bounding box blijven staan, dus die kunnen later gebruikt worden om in de originele afbeelding de positie van de hand te weergeven.
 
-            // Dit stukje is eigenlijk niet meer nodig, maar kan nog gebruikt worden om een threshold te krijgen van de optimale threshold die eerder berekend is
-            /*
-            resetForApply();
-            RightAsInput.Checked = false;
-            for (int x = 0; x < InputImage.Size.Width; x++)
-            {
-                for (int y = 0; y < InputImage.Size.Height; y++)
-                {
-                    Image[x, y] = pipelineImage[x, y];
-                }
-            }
-            ApplyThresholdFilter(optimalThreshold);
-            RightAsInput.Checked = true;
-            resetForApply();
-            ApplyOpeningClosingFilter(true);
-            */
-
-
-            newImage = new Color[maxx - minx, maxy - miny];
+            Color [,] boundingBox = new Color[maxx - minx, maxy - miny];
             for (int x = 0; x < maxx - minx; x++)
             {
                 for (int y = 0; y < maxy - miny; y++)
                 {
-                    //newImage[x, y] = pipelineImage[x + minx, y + miny];
-                    // EN DIT OOK, EN DAN DE ANDERE NEWIMAGE STATEMENT UITCOMMENTEN JUIST
                     int labelColor = 255 - optimalLabel[x + minx, y + miny];
                     Color updatedColor = Color.FromArgb(labelColor, labelColor, labelColor);
-                    newImage[x, y] = updatedColor;
+                    boundingBox[x, y] = updatedColor;
                 }
             }
-            toOutputBitmap();
             RightAsInput.Checked = false;
+            return boundingBox;
+
+            toOutputBitmap();
             Console.WriteLine("(Minx, miny): (" + minx + ", " + miny + ") - (Maxx, maxy): (" + maxx + ", " + maxy + ")");
             Console.WriteLine("Optimal greyscale threshold value: " + optimalThreshold);
         }
 
-        void RegionLabeling(int greyscale)
+        void RegionLabeling(int greyscale, Color[,] InputImage)
         {
             // Region labeling maakt een nieuwe array aan die een border van 1 pixel meer heeft vergeleken met de originele afbeelding
             // Dit is om te zorgen dat de calculaties geen error geven bij foreground check van de afbeelding aan de randen
-            int[,] label = new int[InputImage.Size.Width + 2, InputImage.Size.Height + 2];
+            int[,] label = new int[InputImage.GetLength(0) + 2, InputImage.GetLength(1) + 2];
             int labelIndex = 1;
             bool isLabeled = false;
             List<drawPoint> conflict = new List<drawPoint>();
-            for (int x = 1; x < InputImage.Size.Width + 1; x++)
+            for (int x = 1; x < InputImage.GetLength(0) + 1; x++)
             {
-                for (int y = 1; y < InputImage.Size.Height + 1; y++)
+                for (int y = 1; y < InputImage.GetLength(1) + 1; y++)
                 {
                     // Per foreground pixel wordt gekeken of een van de omringende pixels al is gelabeld.
                     // Zo ja, dan krijgt de pixel deze waarde. Mocht dit meerdere keren gebeuren, dan wordt er een conflict genoteerd.
                     // Zo niet, dan wordt een nieuwe waarde aangemaakt en krijgt de pixel deze waarde.
                     // Mocht er trouwens een pixel gedetecteerd worden met alpha value 0 (doorzichtig), dan wordt die tot de achtergrond gerekend.
-                    if (Image[x - 1, y - 1].R == 0)
+                    if (InputImage[x - 1, y - 1].R == 0)
                     {
                         isLabeled = false;
+                        drawPoint conflictCheck = new drawPoint(x, y);
                         if (label[x - 1, y - 1] != 0)
                         {
                             label[x, y] = label[x - 1, y - 1];
@@ -453,26 +420,26 @@ namespace INFOIBV
                         }
                         if (label[x, y - 1] != 0)
                         {
-                            if (isLabeled == true && label[x, y] != label[x, y - 1] && !conflict.Contains(new drawPoint(x, y)))
-                                conflict.Add(new drawPoint(x, y));
+                            if (isLabeled == true && label[x, y] != label[x, y - 1] && !conflict.Contains(conflictCheck))
+                                conflict.Add(conflictCheck);
                             label[x, y] = label[x, y - 1];
                             isLabeled = true;
                         }
                         if (label[x + 1, y - 1] != 0)
                         {
-                            if (isLabeled && label[x, y] != label[x + 1, y - 1] && !conflict.Contains(new drawPoint(x, y)))
-                                conflict.Add(new drawPoint(x, y));
+                            if (isLabeled && label[x, y] != label[x + 1, y - 1] && !conflict.Contains(conflictCheck))
+                                conflict.Add(conflictCheck);
                             label[x, y] = label[x + 1, y - 1];
                             isLabeled = true;
                         }
                         if (label[x - 1, y] != 0)
                         {
-                            if (isLabeled && label[x, y] != label[x - 1, y] && !conflict.Contains(new drawPoint(x, y)))
-                                conflict.Add(new drawPoint(x, y));
+                            if (isLabeled && label[x, y] != label[x - 1, y] && !conflict.Contains(conflictCheck))
+                                conflict.Add(conflictCheck);
                             label[x, y] = label[x - 1, y];
                             isLabeled = true;
                         }
-                        if (Image[x - 1, y - 1].A == 0)
+                        if (InputImage[x - 1, y - 1].A == 0)
                         {
                             label[x, y] = 0;
                             isLabeled = true;
@@ -524,24 +491,14 @@ namespace INFOIBV
             // Ook wordt per new label bijgehouden hoeveel pixels die waarde hebben. 
             // Dit kan later gebruikt worden om te kijken of een region groot genoeg is om een hand te kunnen zijn.
             int[] newLabelCount = new int[labelIndex];
-            for (int x = 1; x < InputImage.Size.Width + 1; x++)
+            for (int x = 1; x < InputImage.GetLength(0) + 1; x++)
             {
-                for (int y = 1; y < InputImage.Size.Height + 1; y++)
+                for (int y = 1; y < InputImage.GetLength(1) + 1; y++)
                 {
                     label[x, y] = newLabel[label[x, y]];
                     newLabelCount[label[x, y]]++;
-
-                    int newColor = 0;
-                    if (Image[x - 1, y - 1].A == 0)
-                    {
+                    if (InputImage[x - 1, y - 1].A == 0)
                         label[x, y] = 0;
-                    }
-                    if (label[x, y] == 0)
-                    {
-                        newColor = 255;
-                    }
-                    Color updatedColor = Color.FromArgb(newColor, newColor, newColor);
-                    newImage[x - 1, y - 1] = updatedColor;
                 }
             }
 
@@ -568,9 +525,9 @@ namespace INFOIBV
             if (regionCount <= currentRegions)
             {
                 optimalThreshold = greyscale;
-                for (int x = 1; x < InputImage.Size.Width + 1; x++)
+                for (int x = 1; x < InputImage.GetLength(0) + 1; x++)
                 {
-                    for (int y = 1; y < InputImage.Size.Height + 1; y++)
+                    for (int y = 1; y < InputImage.GetLength(1) + 1; y++)
                     {
                         if (label[x, y] == largestLabel)
                         {
@@ -590,14 +547,14 @@ namespace INFOIBV
                             if (x - 1 > maxx)
                             {
                                 maxx = x - 1 + 10;
-                                if (maxx > InputImage.Size.Width)
-                                    maxx = InputImage.Size.Width;
+                                if (maxx > InputImage.GetLength(0))
+                                    maxx = InputImage.GetLength(0);
                             }
                             if (y - 1 > maxy)
                             {
                                 maxy = y - 1 + 10;
-                                if (maxy > InputImage.Size.Height)
-                                    maxy = InputImage.Size.Height;
+                                if (maxy > InputImage.GetLength(1))
+                                    maxy = InputImage.GetLength(1);
                             }
                         }
                     }
