@@ -59,6 +59,8 @@ namespace INFOIBV
             if (isContourPix(backgrC, currentPoint, InputImage))
             {
                 contourPixels.Add(currentPoint);
+                if ((contourPixels.Count > 10) && SameApprPoint(contourPixels[0], currentPoint))
+                return contourPixels; //the startingpoint has been reached.
 
                 //This is N8 chain code, for N4 only consider the 4 pixels straight up, below, left and right
                 for (int x = -1; x <= 1; x++) //kijk van rechtsonder naar linksboven, dan loop je minder snel terug.
@@ -85,6 +87,7 @@ namespace INFOIBV
 
                     }
             }
+            
             if (nextTracePoints.Count > 0)
                 TraceContourPixels(backgrC, nextTracePoints, contourPixels, InputImage);
             //If all edge pixels are traced, return the complete list of contourpixels 
@@ -92,13 +95,10 @@ namespace INFOIBV
         }
 
 
-        Boolean ContainsApprPoint(Stack<drawPoint> points, drawPoint value, int maximumDistance = 6)
+        Boolean SameApprPoint(drawPoint p1, drawPoint p2, int maximumDistance = 6)
         {
-            foreach (drawPoint p in points)
-            {
-                if (Math.Abs(value.X - p.X) < maximumDistance && Math.Abs(value.Y - p.Y) <= maximumDistance)
+                if (Math.Abs(p1.X - p2.X) < maximumDistance && Math.Abs(p1.Y - p2.Y) <= maximumDistance)
                     return true;
-            }
             return false;
         }
 
@@ -479,38 +479,48 @@ namespace INFOIBV
         // Original code copied from: https://stackoverflow.com/questions/10020949/gift-wrapping-algorithm
         drawPoint[] ConvexHull(List<Corner> input)
         {
-            if (input.Count < 3)
-                throw new ArgumentException("Convex hull could not be created, at least 3 corners are required", "input");
-
-            // De lijst corners die als input werd gegeven wordt omgezet naar een lijst drawpoints.
-            List<drawPoint> points = new List<drawPoint>();
-            foreach (var ele in input)
-                points.Add(new drawPoint(ele.U, ele.V));
-
-            List<drawPoint> hull = new List<drawPoint>();
-
-            // Het eerste punt bevindt zich in de linkerbovenhoek van de afbeelding, dit is gegarandeerd in de convex hull te zitten.
-            drawPoint vPointOnHull = points.Where(p => p.X == points.Min(min => min.X)).First();
-
-            // Daarna wordt er per punt een lijn naar elk ander punt getrokken en wordt er gekeken of er nog andere punten aan die kant van de lijn liggen met behulp van de orientation functie.
-            drawPoint vEndpoint;
-            do
+            try
             {
-                hull.Add(vPointOnHull);
-                vEndpoint = points[0];
+                if (input.Count < 3)
+                    throw new ArgumentException("Convex hull could not be created, at least 3 corners are required", "input");
 
-                for (int i = 1; i < points.Count; i++)
+                // De lijst corners die als input werd gegeven wordt omgezet naar een lijst drawpoints.
+                List<drawPoint> points = new List<drawPoint>();
+                foreach (var ele in input)
+                    points.Add(new drawPoint(ele.U, ele.V));
+
+                List<drawPoint> hull = new List<drawPoint>();
+
+                // Het eerste punt bevindt zich in de linkerbovenhoek van de afbeelding, dit is gegarandeerd in de convex hull te zitten.
+                drawPoint vPointOnHull = points.Where(p => p.X == points.Min(min => min.X)).First();
+
+                // Daarna wordt er per punt een lijn naar elk ander punt getrokken en wordt er gekeken of er nog andere punten aan die kant van de lijn liggen met behulp van de orientation functie.
+                drawPoint vEndpoint;
+                do
                 {
-                    if ((vPointOnHull == vEndpoint || (Orientation(vPointOnHull, vEndpoint, points[i]) == -1)))
-                        vEndpoint = points[i];
-                }
-                vPointOnHull = vEndpoint;
-            }
-            while (vEndpoint != hull[0]);
+                    hull.Add(vPointOnHull);
+                    vEndpoint = points[0];
 
-            drawPoint[] hullArray = hull.ToArray();
+                    for (int i = 1; i < points.Count; i++)
+                    {
+                        if ((vPointOnHull == vEndpoint || (Orientation(vPointOnHull, vEndpoint, points[i]) == -1)))
+                            vEndpoint = points[i];
+                    }
+                    vPointOnHull = vEndpoint;
+                }
+                while (vEndpoint != hull[0]);
+
+                drawPoint[] hullArray = hull.ToArray();
+                return hull.ToArray();
+            }
+            catch(Exception e)
+            {
+                MessageBox2.Text = "There are less than 3 corners found. Convex hull cannot be created, are you sure you have at least 3 corners?";
+                    return new drawPoint[0]; //it never reaches this.
+            }
             //drawPointsToImage(hullArray);
-            return hull.ToArray();
+            
+           
         }
 
         void drawPointsToImage(drawPoint[] hull)
@@ -589,12 +599,19 @@ namespace INFOIBV
             new drawPoint(8, 161) //ZW
         };
 
+        drawPoint[] ToArray(ArraySegment<drawPoint> arraySegment)
+        {
+            drawPoint[] array = new drawPoint[arraySegment.Count];
+            Array.Copy(arraySegment.Array, arraySegment.Offset, array, 0, arraySegment.Count);
+            return array;
+        }
+
         drawPoint[] AddConvexDefects(drawPoint[] allCorners, drawPoint[] convexCorners, Color[,] InputImage)
         {
             //zowel tracedBoundary als Convex hull, gaan tegen de klok in.
             List<drawPoint> convexAndDefects = new List<drawPoint>();
             drawPoint[] tracedBoundary = TraceBoundary(InputImage, getBackgroundColor());
-            //drawPointsToImage(tracedBoundary.ToList().Take(200).ToArray());
+            //drawPointsToImage(ToArray(new ArraySegment<drawPoint>(tracedBoundary, 400, 42)));
             for (int i = 0; i < tracedBoundary.Length - 1; i = i + 5)
             {
                 Console.WriteLine("index: " + i + "X, Y: " + tracedBoundary[i].ToString());
@@ -714,8 +731,6 @@ namespace INFOIBV
             totalX = totalX / input.Length;
             totalY = totalY / input.Length;
             drawPoint[] point = new drawPoint[1];
-            point[0] = new drawPoint(totalX, totalY);
-           drawPointsToImage(point);
             return new drawPoint(totalX, totalY);
         }
 

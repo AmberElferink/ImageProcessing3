@@ -85,7 +85,11 @@ namespace INFOIBV
                     ApplyEdgeDetection();
                 else if (findCentroid.Checked)
                 {
-                    try { FindCentroid(ColorArrayToDrawPoints(Image)); }
+                    try { drawPoint[] point = new drawPoint[1];
+                        drawPoint centroid = FindCentroid(ColorArrayToDrawPoints(Image));
+                        point[0] = centroid;
+                        drawPointsToImage(point);
+                    }
                     catch (Exception error) { MessageBox2.Text = error.Message; }
                 }
 
