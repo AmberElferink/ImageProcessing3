@@ -70,20 +70,13 @@ namespace INFOIBV
 
             else
             {
-                if (ErosionRadio.Checked)
-                    ApplyErosionDilationFilter(true);
-                else if (DilationRadio.Checked)
-                    ApplyErosionDilationFilter(false);
-                else if (OpeningRadio.Checked)
-                    ApplyOpeningClosingFilter(true);
-                else if (ClosingRadio.Checked)
-                    ApplyOpeningClosingFilter(false);
-                else if (ValueRadio.Checked)
+
+                if (ValueRadio.Checked)
                     kernelInput.Text = "Unique values: " + valueCount(generateHistogram(Image));
                 else if (thresholdRadio.Checked)       
                     toOutputBitmap(ApplyThresholdFilter(Image, thresholdTrackbar.Value));
                 else if (edgeDetection.Checked)
-                    ApplyEdgeDetection();
+                    toOutputBitmap(ApplyEdgeDetection(Image));
                 else if (findCentroid.Checked)
                 {
                     try
@@ -91,17 +84,15 @@ namespace INFOIBV
                         drawPoint[] point = new drawPoint[1];
                         drawPoint centroid = FindCentroid(ColorArrayToDrawPoints(Image));
                         point[0] = centroid;
-                        drawPointsToImage(point);
+                        drawPointsToImage(point, Image);
                     }
                     catch (Exception error) { MessageBox2.Text = error.Message; }
                 }
 
                 else if (greyscaleRadio.Checked)
-                    ApplyGreyscale(Image);
+                    toOutputBitmap(ApplyGreyscale(Image));
                 else if (preprocessingRadio.Checked)
-                {
-                   toOutput(PreprocessingPipeline(Image));
-                }
+                   toOutputBitmap(PreprocessingPipeline(Image));
                     
                 else if (pipelineRadio.Checked)
                 {
@@ -114,9 +105,16 @@ namespace INFOIBV
                     crossesInImage(conDefList, min, determineState(angleList), greyscaleImage);
                     //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                 }
-                   
+                else if (ErosionRadio.Checked)
+                    toOutputBitmap(ApplyErosionDilationFilter(Image, true));
+                else if (DilationRadio.Checked)
+                    toOutputBitmap(ApplyErosionDilationFilter(Image, false));
+                else if (OpeningRadio.Checked)
+                    toOutputBitmap(ApplyOpeningClosingFilter(Image, true));
+                else if (ClosingRadio.Checked)
+                    toOutputBitmap(ApplyOpeningClosingFilter(Image, false));
 
-               //toOutputBitmap(newImage);
+                //toOutputBitmap(newImage);
                 //greyscale, region labelling, opening closing (dus erosion dilation), 
                 //weg: Fourier, complement WritedrawVectArr
 
@@ -387,8 +385,9 @@ namespace INFOIBV
        
 
 
-        void ApplyEdgeDetection()
+        Color[,] ApplyEdgeDetection(Color[,] InputImage)
         {
+            Color[,] OutputImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
             // 
             float[,] Hx = new float[,] { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
             float[,] Hy = new float[,] { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
@@ -396,12 +395,12 @@ namespace INFOIBV
 
             int halfboxsize = Hx.GetLength(0) / 2;
 
-            for (int x = halfboxsize; x < InputImage.Size.Width - halfboxsize; x++)
+            for (int x = halfboxsize; x < InputImage.GetLength(0) - halfboxsize; x++)
             {
-                for (int y = halfboxsize; y < InputImage.Size.Height - halfboxsize; y++)
+                for (int y = halfboxsize; y < InputImage.GetLength(1) - halfboxsize; y++)
                 {
-                    float u = CalculateNewColor(x, y, Hx, halfboxsize, Image, false) / 8; //apply Hx to the image pixel
-                    float v = CalculateNewColor(x, y, Hy, halfboxsize, Image, false) / 8; //apply Hy to the image pixel
+                    float u = CalculateNewColor(x, y, Hx, halfboxsize, InputImage, false) / 8; //apply Hx to the image pixel
+                    float v = CalculateNewColor(x, y, Hy, halfboxsize, InputImage, false) / 8; //apply Hy to the image pixel
 
 
                     int edgeStrength = (int)Math.Sqrt(u * u + v * v); //calculate edgestrength by calculating the length of vector [Hx, Hy]
@@ -414,11 +413,11 @@ namespace INFOIBV
 
                     edgeStrength = 255 - edgeStrength;
                     Color updatedColor = Color.FromArgb(edgeStrength, edgeStrength, edgeStrength);
-                    newImage[x, y] = updatedColor;
+                    OutputImage[x, y] = updatedColor;
                 }
                 progressBar.PerformStep();
             }
-            toOutputBitmap();
+            return OutputImage;
         }
 
 

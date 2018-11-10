@@ -209,15 +209,13 @@ namespace INFOIBV
                 }
                 progressBar.PerformStep();
             }
-            Avalues = ApplyGaussianFilter(Avalues, 1.1f, 5, InputImage);
-            Bvalues = ApplyGaussianFilter(Bvalues, 1.1f, 5, InputImage);
-            Cvalues = ApplyGaussianFilter(Cvalues, 1.1f, 5, InputImage);
+            Avalues = ApplyGaussianQvalues(Avalues, 1.1f, 5, InputImage);
+            Bvalues = ApplyGaussianQvalues(Bvalues, 1.1f, 5, InputImage);
+            Cvalues = ApplyGaussianQvalues(Cvalues, 1.1f, 5, InputImage);
             float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues, InputImage);
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
             List<Corner> cornerList = QToCorners(Qvalues, 2000000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
-            CornersToImage(goodCorners);
-            toOutputBitmap();
             return goodCorners;
         }
 
@@ -288,6 +286,7 @@ namespace INFOIBV
                 Console.WriteLine(Q);
                 newImage[c.U, c.V] = Color.FromArgb(clamp(Q), 0, 0);
             }
+            toOutputBitmap(newImage);
         }
 
         float[,] CalculateQvalues(float[,] Avalues, float[,] Bvalues, float[,] Cvalues, Color[,] InputImage)
@@ -338,7 +337,7 @@ namespace INFOIBV
             return kernel;
         }
 
-        private float[,] ApplyGaussianFilter(float[,] valueArray, float sigma, int boxsize, Color[,] InputImage)
+        private float[,] ApplyGaussianQvalues(float[,] valueArray, float sigma, int boxsize, Color[,] InputImage)
         {
             // input lezen: eerst een float voor de sigma, dan een int voor de kernel size
 
@@ -536,6 +535,7 @@ namespace INFOIBV
             {
                 newImage[ele.X, ele.Y] = Color.FromArgb(255, 0, 0);
             }
+            toOutputBitmap(newImage);
         }
 
 
@@ -617,7 +617,7 @@ namespace INFOIBV
             }
 
 
-            drawPoint centroid = FindCentroid(allCorners, InputImage);
+            drawPoint centroid = FindCentroid(allCorners);
 
             for (int i = 0; i < convexCorners.Length - 1; i++)
             {
@@ -718,7 +718,7 @@ namespace INFOIBV
             return (diffX * diffX + diffY * diffY);
         }
 
-        drawPoint FindCentroid(drawPoint[] input, Color[,] InputImage)
+        drawPoint FindCentroid(drawPoint[] input)
         {
             int totalX = 0;
             int totalY = 0;
