@@ -205,6 +205,7 @@ namespace INFOIBV
 
 
 
+
         void resetForApply()
         {
             MessageBox2.Text = "";
@@ -216,12 +217,12 @@ namespace INFOIBV
                 {
                     InputImage.Dispose();
                     InputImage = new Bitmap(OutputImage.Size.Width, OutputImage.Size.Height);
-
+                    
                     for (int x = 0; x < InputImage.Size.Width; x++)
                     {
                         for (int y = 0; y < InputImage.Size.Height; y++)
                         {
-                            InputImage.SetPixel(x, y, newImage[x, y]);               // Set the pixel color at coordinate (x,y)
+                            InputImage.SetPixel(x, y, OutputImage.GetPixel(x, y));               // Set the pixel color at coordinate (x,y)
                                                                                   //OutputImage.SetPixel(x, y, newImage[x, y]);
                         }
                     }
@@ -245,17 +246,21 @@ namespace INFOIBV
             progressBar.Value = 1;
             progressBar.Step = 1;
 
-            // Copy input Bitmap to array            
+            Image = BitmapToArray(InputImage);
+        }
+
+        Color[,] BitmapToArray(Bitmap InputImage)
+        {
+            Color[,] OutputImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
-                    Image[x, y] = InputImage.GetPixel(x, y);                // Set pixel color in array at (x,y)
+                    OutputImage[x, y] = InputImage.GetPixel(x, y);                // Set pixel color in array at (x,y)
                 }
             }
+            return OutputImage;
         }
-
-
 
 
 
