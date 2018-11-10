@@ -761,7 +761,7 @@ namespace INFOIBV
             return angleList;
         }
 
-        int determineState(float[] angleList)
+        int determineObject(float[] angleList)
         {
             int fingers = 0;
             for (int i = 0; i < angleList.Length; i++)

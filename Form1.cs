@@ -21,8 +21,8 @@ namespace INFOIBV
 
         // Variabelen die voor de preprocessing pipeline nodig zijn
         Color[,] greyscaleImage;
-        int minx;
-        int miny;
+        int leftUpperBbX;
+        int leftUpperBbY;
         int maxx;
         int maxy;
         int currentRegions;
@@ -102,8 +102,8 @@ namespace INFOIBV
                     List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, pipelineImage);
                     drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
                     float[] angleList = cornerOfConvex(conDefList);
-                    drawPoint min = new drawPoint(minx, miny);
-                    Color[,] finalImage = crossesInImage(conDefList, min, determineState(angleList), greyscaleImage);
+                    drawPoint leftUpperBoundingBox = new drawPoint(leftUpperBbX, leftUpperBbY);
+                    Color[,] finalImage = crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList), greyscaleImage);
                     //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                 }
                 else if (ErosionRadio.Checked)

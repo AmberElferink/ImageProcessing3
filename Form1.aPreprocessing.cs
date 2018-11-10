@@ -324,8 +324,8 @@ namespace INFOIBV
         Color[,] PreprocessingPipeline(Color[,] InputImage)
         {
             // Variabelen die nodig zijn om de bounding box en region count worden geinitializeerd
-            minx = InputImage.GetLength(0);
-            miny = InputImage.GetLength(1);
+            leftUpperBbX = InputImage.GetLength(0);
+            leftUpperBbY = InputImage.GetLength(1);
             maxx = 0;
             maxy = 0;
             regionCount = int.MaxValue;
@@ -355,12 +355,12 @@ namespace INFOIBV
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
             // De coordinaten van de bounding box blijven staan, dus die kunnen later gebruikt worden om in de originele afbeelding de positie van de hand te weergeven.
 
-            Color [,] boundingBox = new Color[maxx - minx, maxy - miny];
-            for (int x = 0; x < maxx - minx; x++)
+            Color [,] boundingBox = new Color[maxx - leftUpperBbX, maxy - leftUpperBbY];
+            for (int x = 0; x < maxx - leftUpperBbX; x++)
             {
-                for (int y = 0; y < maxy - miny; y++)
+                for (int y = 0; y < maxy - leftUpperBbY; y++)
                 {
-                    if (optimalLabel[x + minx, y + miny])
+                    if (optimalLabel[x + leftUpperBbX, y + leftUpperBbY])
                         boundingBox[x, y] = getForegroundColor();
                     else
                         boundingBox[x, y] = getBackgroundColor();
@@ -514,17 +514,17 @@ namespace INFOIBV
                         if (label[x, y] == largestLabel)
                         {
                             optimalLabel[x - 1, y - 1] = true;
-                            if (x - 1 < minx)
+                            if (x - 1 < leftUpperBbX)
                             {
-                                minx = x - 1 - 10;
-                                if (minx < 0)
-                                    minx = 0;
+                                leftUpperBbX = x - 1 - 10;
+                                if (leftUpperBbX < 0)
+                                    leftUpperBbX = 0;
                             }
-                            if (y - 1 < miny)
+                            if (y - 1 < leftUpperBbY)
                             {
-                                miny = y - 1 - 10;
-                                if (miny < 0)
-                                    miny = 0;
+                                leftUpperBbY = y - 1 - 10;
+                                if (leftUpperBbY < 0)
+                                    leftUpperBbY = 0;
                             }
                             if (x - 1 > maxx)
                             {
