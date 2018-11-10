@@ -135,26 +135,19 @@ namespace INFOIBV
         /// <summary>
         /// Dilates a binary image using the provided matrix as structuring element.
         /// </summary>
-        Color[,] CalculateDilationBinary(Color[,] InputImage, int x, int y, int[,] matrix, int halfBoxSize, int backGrC)
+        Color[,] CalculateDilationBinary(Color[,] InputImage, Color[,] OutputImage, int x, int y, int[,] matrix, int halfBoxSize, Color backGrC, Color foreGrC)
         {
-            Color[,] OutputImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
-            int newColor = 0;
-            if (backGrC == 0)
-                newColor = 255;
-            Color updatedColor = Color.FromArgb(newColor, newColor, newColor);
             for (int a = (halfBoxSize * -1); a <= halfBoxSize; a++)
             {
                 for (int b = (halfBoxSize * -1); b <= halfBoxSize; b++)
                 {
-
                     // every pixel that exists on the structuring element and is currently in the background gets transformed to the foreground
-                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && InputImage[x + a, y + b].R == backGrC)
+                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && InputImage[x + a, y + b] == backGrC)
                     {
-                        OutputImage[x + a, y + b] = updatedColor;
+                        OutputImage[x + a, y + b] = foreGrC;
                     }
                     // every pixel that doesn't meet these conditions retains its former color
-                    else OutputImage[x, y] = updatedColor;
-
+                    else OutputImage[x, y] = foreGrC;
                 }
             }
             return OutputImage;
@@ -166,20 +159,17 @@ namespace INFOIBV
         /// <summary>
         /// Erodes a binary image using the provided matrix as a structuring element.
         /// </summary>
-        Color[,] CalculateErosionBinary(Color[,] InputImage, int x, int y, int[,] matrix, int halfBoxSize, int backGrC)
+        Color[,] CalculateErosionBinary(Color[,] InputImage, Color[,] OutputImage, int x, int y, int[,] matrix, int halfBoxSize, Color backGrC)
         {
-            Color[,] OutputImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
-            int newcolor = backGrC;
-            Color updatedColor = Color.FromArgb(newcolor, newcolor, newcolor);
             for (int a = (halfBoxSize * -1); a <= halfBoxSize; a++)
             {
                 for (int b = (halfBoxSize * -1); b <= halfBoxSize; b++)
                 {
                     // if a pixel in the structuring element is detected that isn't in the foreground, 
                     // the hotspot gets transformed to the background and the function ends
-                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && InputImage[x + a, y + b].R == backGrC)
+                    if (matrix[a + halfBoxSize, b + halfBoxSize] != -1 && InputImage[x + a, y + b] == backGrC)
                     {
-                        OutputImage[x, y] = updatedColor;
+                        OutputImage[x, y] = backGrC;
                         return OutputImage;
                     }
                 }
@@ -245,20 +235,10 @@ namespace INFOIBV
         {
             int[,] matrix = ParseMatrix();
             int newColor1 = 0;
-            int backGrColor = 0;
-            int foreGrColor = 255;
             Color[,] OutputImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
 
-            if (checkBlackBackground.Checked)
-            {
-                backGrColor = 0;
-                foreGrColor = 255;
-            }
-            else
-            {
-                backGrColor = 255;
-                foreGrColor = 0;
-            }
+            Color backGrColor = getBackgroundColor();
+            Color foreGrColor = getForegroundColor();
 
             //check if the image is binary
             bool binary = MaybeBinary(InputImage, valueCount(generateHistogram(InputImage))).Item2;
@@ -277,16 +257,14 @@ namespace INFOIBV
                         // binary images: binary erosion/dilation
                         if (binary)
                         {
-                            if (InputImage[x, y].R == foreGrColor)
+                            if (InputImage[x, y] == foreGrColor)
                             {
-                                if (isErosion) OutputImage = CalculateErosionBinary(InputImage, x, y, matrix, halfBoxSize, backGrColor);
-                                else OutputImage = CalculateDilationBinary(InputImage, x, y, matrix, halfBoxSize, backGrColor);
+                                if (isErosion) OutputImage = CalculateErosionBinary(InputImage, OutputImage, x, y, matrix, halfBoxSize, backGrColor);
+                                else OutputImage = CalculateDilationBinary(InputImage, OutputImage, x, y, matrix, halfBoxSize, backGrColor, foreGrColor);
                             }
                             else
                             {
-                                newColor1 = backGrColor;
-                                Color UpdatedColor = Color.FromArgb(newColor1, newColor1, newColor1);
-                                OutputImage[x, y] = UpdatedColor;
+                                OutputImage[x, y] = backGrColor;
                             }
                         }
                         // greyscale images: greyscale erosion/dilation and apply new color
