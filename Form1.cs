@@ -91,7 +91,7 @@ namespace INFOIBV
                 else if (pipelineRadio.Checked)
                 {
                     CreateSobelKernel(0, ref Kx, ref Ky);
-                    kernelInput.Text = WritedrawPointArr(ConvexDefects(CornerListToArray(HarrisCornerDetection(Kx, Ky, Image)), convexHullStarCorners, Image));
+                    kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(HarrisCornerDetection(Kx, Ky, Image)), convexHullStarCorners, Image));
                 }
                    
 

@@ -554,10 +554,10 @@ namespace INFOIBV
             new drawPoint(8, 161) //ZW
         };
 
-        drawPoint[] ConvexDefects(drawPoint[] allCorners, drawPoint[] convexCorners, Color[,] InputImage)
+        drawPoint[] AddConvexDefects(drawPoint[] allCorners, drawPoint[] convexCorners, Color[,] InputImage)
         {
             //zowel tracedBoundary als Convex hull, gaan tegen de klok in.
-            List<drawPoint> defects = new List<drawPoint>();
+            List<drawPoint> convexAndDefects = new List<drawPoint>();
             drawPoint[] tracedBoundary = TraceBoundary(InputImage, getBackgroundColor());
             //drawPointsToImage(tracedBoundary.ToList().Take(600).ToList());
             for(int i = 0; i < tracedBoundary.Length - 1; i = i + 5)
@@ -571,13 +571,17 @@ namespace INFOIBV
             for (int i = 0; i < convexCorners.Length - 1; i++)
             {
                 drawPoint defect = WalkBetwConvexPoints(i, i + 1, convexCorners, tracedBoundary, 6, centroid);
-                defects.Add(defect);
+                convexAndDefects.Add(convexCorners[i]);
+                convexAndDefects.Add(defect);
+                
             }
 
-            defects.Add(WalkBetwConvexPoints(convexCorners.Length - 1, 0, convexCorners, tracedBoundary, 6, centroid));
+            convexAndDefects.Add(convexCorners[convexCorners.Length - 1]);
+            convexAndDefects.Add(WalkBetwConvexPoints(convexCorners.Length - 1, 0, convexCorners, tracedBoundary, 6, centroid));
 
-            drawPointsToImage(defects);
-            return defects.ToArray();
+
+            drawPointsToImage(convexAndDefects);
+            return convexAndDefects.ToArray();
 
         }
 
