@@ -11,6 +11,7 @@ namespace INFOIBV
 {
     public partial class INFOIBV : Form
     {
+        
         private Bitmap InputImage;
         private Bitmap OutputImage;
         Color[,] Image;

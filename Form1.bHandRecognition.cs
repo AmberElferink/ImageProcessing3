@@ -613,13 +613,32 @@ namespace INFOIBV
 
             convexAndDefects.Add(convexCorners[convexCorners.Length - 1]);
             convexAndDefects.Add(WalkBetwConvexPoints(convexCorners.Length - 1, 0, convexCorners, tracedBoundary, 6, centroid));
-
-            drawPoint[] convexAndDefectsArray = convexAndDefects.ToArray();
+            drawPoint[] convexAndDefectsArray  = RemoveRedundantPoints(convexAndDefects);
             drawPointsToImage(convexAndDefectsArray);
+            
             return convexAndDefectsArray;
 
         }
+        
+        /// <summary>
+        /// removes points too close to eachother
+        /// </summary>
+        /// <param name="points"></param>
+        /// <param name="maxDistance"></param>
+        /// <returns></returns>
+        drawPoint[] RemoveRedundantPoints(List<drawPoint> points, int minDistance = 6)
+        {
+            List<drawPoint> points2 = new List<drawPoint>();
+            for(int i = 0; i < points.Count -1; i++)
+            {
+                if (SqDistancePoints(points[i], points[i + 1]) > minDistance)
+                    points2.Add(points[i]);
 
+            }
+
+            return points2.ToArray();
+            
+        }
 
         drawPoint WalkBetwConvexPoints(int convexCornerIndex1, int convexCornerIndex2, drawPoint[] convexCorners, drawPoint[] tracedBoundary, int maxDiff, drawPoint centroid)
         {
