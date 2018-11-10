@@ -66,17 +66,17 @@ namespace INFOIBV
                     {
                         int xvalue = currentPoint.X + x;
                         int yvalue = currentPoint.Y + y;
-                        if(!(x == 0 && y == 0)) //it is currentPoint, which was already processed
+                        if (!(x == 0 && y == 0)) //it is currentPoint, which was already processed
                         {
-                            if (InputImage[xvalue, yvalue] != backgrC) //backGr pixels can never be a border
+                            if (xvalue >= 0 && yvalue >= 0 && xvalue < InputImage.GetLength(0) && yvalue < InputImage.GetLength(1)) //check if pixel is not outside of image
                             {
-                                if (xvalue >= 0 && yvalue >= 0 && xvalue < InputImage.GetLength(0) && yvalue < InputImage.GetLength(1)) //check if pixel is not outside of image
+                                if (InputImage[xvalue, yvalue] != backgrC) //backGr pixels can never be a border
                                 {
                                     drawPoint nextTracePoint = new drawPoint(xvalue, yvalue);
                                     if (!nextTracePoints.Contains(nextTracePoint)) //if the nextTracePoint is not already in the Queue
                                     {
-                                        if(!contourPixels.Contains(nextTracePoint)) //if the nextTracePoint has not already been processed
-                                        nextTracePoints.Push(nextTracePoint);
+                                        if (!contourPixels.Contains(nextTracePoint)) //if the nextTracePoint has not already been processed
+                                            nextTracePoints.Push(nextTracePoint);
                                     }
                                 }
 
@@ -85,16 +85,16 @@ namespace INFOIBV
 
                     }
             }
-            if(nextTracePoints.Count > 0)
-            TraceContourPixels(backgrC, nextTracePoints, contourPixels, InputImage);
+            if (nextTracePoints.Count > 0)
+                TraceContourPixels(backgrC, nextTracePoints, contourPixels, InputImage);
             //If all edge pixels are traced, return the complete list of contourpixels 
             return contourPixels;
         }
 
 
-       Boolean ContainsApprPoint(Stack<drawPoint> points, drawPoint value, int maximumDistance = 6 )
+        Boolean ContainsApprPoint(Stack<drawPoint> points, drawPoint value, int maximumDistance = 6)
         {
-            foreach( drawPoint p in points)
+            foreach (drawPoint p in points)
             {
                 if (Math.Abs(value.X - p.X) < maximumDistance && Math.Abs(value.Y - p.Y) <= maximumDistance)
                     return true;
@@ -111,7 +111,7 @@ namespace INFOIBV
                 {
                     int xvalue = pixel.X + x;
                     int yvalue = pixel.Y + y;
-                    if (xvalue >= 0 && yvalue  >= 0 && xvalue < InputImage.GetLength(0) && yvalue < InputImage.GetLength(1))
+                    if (xvalue >= 0 && yvalue >= 0 && xvalue < InputImage.GetLength(0) && yvalue < InputImage.GetLength(1))
                         if (InputImage[xvalue, yvalue] == backgrC)
                             return true;
                 }
@@ -216,9 +216,7 @@ namespace INFOIBV
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
             List<Corner> cornerList = QToCorners(Qvalues, 2000000);
             List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
-            List<drawPoint> convexHull = ConvexHull(goodCorners);
-            drawPointsToImage(convexHull);
-            //CornersToImage(goodCorners);
+            CornersToImage(goodCorners);
             toOutputBitmap();
             return goodCorners;
         }
@@ -479,7 +477,7 @@ namespace INFOIBV
 
         // This function produces a convex hull from a list corners of corners using the gift wrapping algorithm.
         // Original code copied from: https://stackoverflow.com/questions/10020949/gift-wrapping-algorithm
-        public static List<drawPoint> ConvexHull(List<Corner> input)
+        drawPoint[] ConvexHull(List<Corner> input)
         {
             if (input.Count < 3)
                 throw new ArgumentException("Convex hull could not be created, at least 3 corners are required", "input");
@@ -510,10 +508,12 @@ namespace INFOIBV
             }
             while (vEndpoint != hull[0]);
 
-            return hull;
+            drawPoint[] hullArray = hull.ToArray();
+            //drawPointsToImage(hullArray);
+            return hull.ToArray();
         }
 
-        void drawPointsToImage(List<drawPoint> hull)
+        void drawPointsToImage(drawPoint[] hull)
         {
             for (int i = 0; i < InputImage.Size.Width; i++)
             {
@@ -559,13 +559,13 @@ namespace INFOIBV
             //zowel tracedBoundary als Convex hull, gaan tegen de klok in.
             List<drawPoint> convexAndDefects = new List<drawPoint>();
             drawPoint[] tracedBoundary = TraceBoundary(InputImage, getBackgroundColor());
-            //drawPointsToImage(tracedBoundary.ToList().Take(600).ToList());
-            for(int i = 0; i < tracedBoundary.Length - 1; i = i + 5)
+            //drawPointsToImage(tracedBoundary.ToList().Take(200).ToArray());
+            for (int i = 0; i < tracedBoundary.Length - 1; i = i + 5)
             {
                 Console.WriteLine("index: " + i + "X, Y: " + tracedBoundary[i].ToString());
             }
 
-            
+
             drawPoint centroid = FindCentroid(allCorners);
 
             for (int i = 0; i < convexCorners.Length - 1; i++)
@@ -573,15 +573,15 @@ namespace INFOIBV
                 drawPoint defect = WalkBetwConvexPoints(i, i + 1, convexCorners, tracedBoundary, 6, centroid);
                 convexAndDefects.Add(convexCorners[i]);
                 convexAndDefects.Add(defect);
-                
+
             }
 
             convexAndDefects.Add(convexCorners[convexCorners.Length - 1]);
             convexAndDefects.Add(WalkBetwConvexPoints(convexCorners.Length - 1, 0, convexCorners, tracedBoundary, 6, centroid));
 
-
-            drawPointsToImage(convexAndDefects);
-            return convexAndDefects.ToArray();
+            drawPoint[] convexAndDefectsArray = convexAndDefects.ToArray();
+            drawPointsToImage(convexAndDefectsArray);
+            return convexAndDefectsArray;
 
         }
 
@@ -597,13 +597,13 @@ namespace INFOIBV
 
             Console.WriteLine("start: " + startIndex + " end: " + endIndex);
             drawPoint defect = FindDefect(tracedBoundary, centroid, startIndex, endIndex);
-            
+
             return defect;
         }
 
         int SearchPointInArray(drawPoint p, drawPoint[] points, int maxDiff)
         {
-            for(int i = 0; i < points.Length; i++)
+            for (int i = 0; i < points.Length; i++)
             {
                 if (Math.Abs(points[i].X - p.X) < maxDiff && (Math.Abs(points[i].Y - p.Y) < maxDiff))
                     return i;
@@ -659,6 +659,9 @@ namespace INFOIBV
             }
             totalX = totalX / input.Length;
             totalY = totalY / input.Length;
+            drawPoint[] point = new drawPoint[1];
+            point[0] = new drawPoint(totalX, totalY);
+           drawPointsToImage(point);
             return new drawPoint(totalX, totalY);
         }
 
@@ -666,7 +669,7 @@ namespace INFOIBV
 
 
 
-       
+
 
 
     }

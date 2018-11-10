@@ -29,11 +29,6 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(INFOIBV));
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.LoadImageButton1 = new System.Windows.Forms.Button();
             this.openImageDialog = new System.Windows.Forms.OpenFileDialog();
             this.imageFileName1 = new System.Windows.Forms.TextBox();
@@ -50,11 +45,7 @@
             this.ClosingRadio = new System.Windows.Forms.RadioButton();
             this.ValueRadio = new System.Windows.Forms.RadioButton();
             this.BoundaryRadio = new System.Windows.Forms.RadioButton();
-            this.FourierRadio = new System.Windows.Forms.RadioButton();
             this.MessageBox2 = new System.Windows.Forms.TextBox();
-            this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.FourierSamples = new System.Windows.Forms.Label();
             this.checkBinary = new System.Windows.Forms.CheckBox();
             this.checkBlackBackground = new System.Windows.Forms.CheckBox();
             this.thresholdRadio = new System.Windows.Forms.RadioButton();
@@ -67,9 +58,9 @@
             this.regionLabelRadio = new System.Windows.Forms.RadioButton();
             this.cornerDetRadio = new System.Windows.Forms.RadioButton();
             this.pipelineRadio = new System.Windows.Forms.RadioButton();
+            this.findCentroid = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.thresholdTrackbar)).BeginInit();
             this.SuspendLayout();
             // 
@@ -142,7 +133,7 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(457, 664);
+            this.progressBar.Location = new System.Drawing.Point(566, 664);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(278, 20);
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
@@ -226,18 +217,6 @@
             this.BoundaryRadio.UseVisualStyleBackColor = true;
             this.BoundaryRadio.CheckedChanged += new System.EventHandler(this.BoundaryRadio_CheckedChanged);
             // 
-            // FourierRadio
-            // 
-            this.FourierRadio.AutoSize = true;
-            this.FourierRadio.Location = new System.Drawing.Point(457, 625);
-            this.FourierRadio.Name = "FourierRadio";
-            this.FourierRadio.Size = new System.Drawing.Size(138, 17);
-            this.FourierRadio.TabIndex = 17;
-            this.FourierRadio.TabStop = true;
-            this.FourierRadio.Text = "Fourier shape descriptor";
-            this.FourierRadio.UseVisualStyleBackColor = true;
-            this.FourierRadio.CheckedChanged += new System.EventHandler(this.FourierRadio_CheckedChanged);
-            // 
             // MessageBox2
             // 
             this.MessageBox2.Location = new System.Drawing.Point(566, 690);
@@ -245,65 +224,6 @@
             this.MessageBox2.ReadOnly = true;
             this.MessageBox2.Size = new System.Drawing.Size(319, 20);
             this.MessageBox2.TabIndex = 23;
-            // 
-            // chart1
-            // 
-            this.chart1.BorderlineWidth = 10;
-            chartArea1.AxisX.LabelAutoFitMinFontSize = 20;
-            chartArea1.AxisX.Title = "n";
-            chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            chartArea1.AxisY.LabelAutoFitMinFontSize = 20;
-            chartArea1.AxisY.Title = "Cn Value";
-            chartArea1.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
-            legend1.Alignment = System.Drawing.StringAlignment.Far;
-            legend1.AutoFitMinFontSize = 10;
-            legend1.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
-            legend1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            legend1.IsTextAutoFit = false;
-            legend1.Name = "Legend1";
-            this.chart1.Legends.Add(legend1);
-            this.chart1.Location = new System.Drawing.Point(1050, 18);
-            this.chart1.Margin = new System.Windows.Forms.Padding(2);
-            this.chart1.Name = "chart1";
-            series1.BorderWidth = 8;
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series1.Legend = "Legend1";
-            series1.Name = "Cn Real";
-            series2.BorderWidth = 8;
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series2.Legend = "Legend1";
-            series2.Name = "Cn Imaginary";
-            this.chart1.Series.Add(series1);
-            this.chart1.Series.Add(series2);
-            this.chart1.Size = new System.Drawing.Size(518, 544);
-            this.chart1.TabIndex = 26;
-            this.chart1.Text = "Cn plot";
-            title1.Name = "Fourier Transform";
-            title1.Text = "Fourier Descriptors";
-            this.chart1.Titles.Add(title1);
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(601, 622);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
-            this.textBox1.TabIndex = 27;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
-            // FourierSamples
-            // 
-            this.FourierSamples.AutoSize = true;
-            this.FourierSamples.Location = new System.Drawing.Point(598, 606);
-            this.FourierSamples.Name = "FourierSamples";
-            this.FourierSamples.Size = new System.Drawing.Size(106, 13);
-            this.FourierSamples.TabIndex = 28;
-            this.FourierSamples.Text = "sample every n steps";
-            this.FourierSamples.Click += new System.EventHandler(this.FourierSamples_Click);
             // 
             // checkBinary
             // 
@@ -394,7 +314,7 @@
             // preprocessingRadio
             // 
             this.preprocessingRadio.AutoSize = true;
-            this.preprocessingRadio.Location = new System.Drawing.Point(836, 627);
+            this.preprocessingRadio.Location = new System.Drawing.Point(587, 579);
             this.preprocessingRadio.Margin = new System.Windows.Forms.Padding(2);
             this.preprocessingRadio.Name = "preprocessingRadio";
             this.preprocessingRadio.Size = new System.Drawing.Size(132, 17);
@@ -406,7 +326,7 @@
             // regionLabelRadio
             // 
             this.regionLabelRadio.AutoSize = true;
-            this.regionLabelRadio.Location = new System.Drawing.Point(836, 649);
+            this.regionLabelRadio.Location = new System.Drawing.Point(587, 600);
             this.regionLabelRadio.Margin = new System.Windows.Forms.Padding(2);
             this.regionLabelRadio.Name = "regionLabelRadio";
             this.regionLabelRadio.Size = new System.Drawing.Size(102, 17);
@@ -418,7 +338,7 @@
             // cornerDetRadio
             // 
             this.cornerDetRadio.AutoSize = true;
-            this.cornerDetRadio.Location = new System.Drawing.Point(458, 647);
+            this.cornerDetRadio.Location = new System.Drawing.Point(458, 627);
             this.cornerDetRadio.Margin = new System.Windows.Forms.Padding(2);
             this.cornerDetRadio.Name = "cornerDetRadio";
             this.cornerDetRadio.Size = new System.Drawing.Size(102, 17);
@@ -438,11 +358,24 @@
             this.pipelineRadio.Text = "Hand detection Pipeline";
             this.pipelineRadio.UseVisualStyleBackColor = true;
             // 
+            // findCentroid
+            // 
+            this.findCentroid.AutoSize = true;
+            this.findCentroid.Location = new System.Drawing.Point(457, 649);
+            this.findCentroid.Name = "findCentroid";
+            this.findCentroid.Size = new System.Drawing.Size(87, 17);
+            this.findCentroid.TabIndex = 40;
+            this.findCentroid.TabStop = true;
+            this.findCentroid.Text = "Find Centroid";
+            this.findCentroid.UseVisualStyleBackColor = true;
+            this.findCentroid.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
+            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1588, 739);
+            this.ClientSize = new System.Drawing.Size(1078, 739);
+            this.Controls.Add(this.findCentroid);
             this.Controls.Add(this.pipelineRadio);
             this.Controls.Add(this.regionLabelRadio);
             this.Controls.Add(this.preprocessingRadio);
@@ -455,11 +388,7 @@
             this.Controls.Add(this.thresholdTrackbar);
             this.Controls.Add(this.checkBlackBackground);
             this.Controls.Add(this.checkBinary);
-            this.Controls.Add(this.FourierSamples);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.chart1);
             this.Controls.Add(this.MessageBox2);
-            this.Controls.Add(this.FourierRadio);
             this.Controls.Add(this.BoundaryRadio);
             this.Controls.Add(this.ValueRadio);
             this.Controls.Add(this.ClosingRadio);
@@ -480,7 +409,6 @@
             this.Text = "INFOIBV";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.thresholdTrackbar)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -505,11 +433,7 @@
         private System.Windows.Forms.RadioButton ClosingRadio;
         private System.Windows.Forms.RadioButton ValueRadio;
         private System.Windows.Forms.RadioButton BoundaryRadio;
-        private System.Windows.Forms.RadioButton FourierRadio;
         private System.Windows.Forms.TextBox MessageBox2;
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Label FourierSamples;
         private System.Windows.Forms.CheckBox checkBinary;
         private System.Windows.Forms.CheckBox checkBlackBackground;
         private System.Windows.Forms.RadioButton thresholdRadio;
@@ -522,6 +446,7 @@
         private System.Windows.Forms.RadioButton regionLabelRadio;
         private System.Windows.Forms.RadioButton cornerDetRadio;
         private System.Windows.Forms.RadioButton pipelineRadio;
+        private System.Windows.Forms.RadioButton findCentroid;
     }
 }
 
