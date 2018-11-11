@@ -58,23 +58,23 @@ namespace INFOIBV
 
         drawPoint NextPixel(Dir d, drawPoint pixel)
         {
+            drawPoint newPixel = pixel;
             switch (d)
             {
-                case Dir.W:
-                    return new drawPoint(pixel.X - 1, pixel.Y);
+
+                case Dir.W: newPixel = new drawPoint(pixel.X - 1, pixel.Y);
                     break;
                 case Dir.N:
-                    return new drawPoint(pixel.X, pixel.Y - 1);
+                    newPixel = new drawPoint(pixel.X, pixel.Y - 1);
                     break;
                 case Dir.O:
-                    return new drawPoint(pixel.X + 1, pixel.Y);
+                    newPixel = new drawPoint(pixel.X + 1, pixel.Y);
                     break;
                 case Dir.Z:
-                    return new drawPoint(pixel.X, pixel.Y + 1);
+                    newPixel = new drawPoint(pixel.X, pixel.Y + 1);
                     break;
             }
-
-            throw new Exception("you entered a wrong direction");
+                 return newPixel;
         }
 
 
@@ -85,15 +85,24 @@ namespace INFOIBV
         List<drawPoint> TraceAroundPoint(Color backgrC, Color[,] InputImage, List<drawPoint> tracedPixels, Dir initialDir, Dir currDir, drawPoint currPixel)
         {
             Dir newDir = increaseDir(currDir, 1); //next clockwise direction.
-            if(InputImage[currPixel.X, currPixel.Y] != backgrC)   
+            if (!(currPixel.X >= InputImage.GetLength(0) || currPixel.Y >= InputImage.GetLength(1)))
             {
-                if(currPixel == tracedPixels[0] && currDir == initialDir && tracedPixels.Count > 1) //startingpixel has been reached
+                if (InputImage[currPixel.X, currPixel.Y] != backgrC)
                 {
-                    return tracedPixels;
+                    if (currPixel == tracedPixels[0] && currDir == initialDir && tracedPixels.Count > 1) //startingpixel has been reached
+                    {
+                        return tracedPixels;
+                    }
+                    tracedPixels.Add(new drawPoint(currPixel.X, currPixel.Y));
+                    newDir = increaseDir(currDir, 2); //(+2) = turn around
                 }
-                tracedPixels.Add(new drawPoint(currPixel.X, currPixel.Y));
-                newDir = increaseDir(currDir, 2); //(+2) = turn around
+               /* currDir = increaseDir(currDir, 2);
+                currPixel = NextPixel(currDir, currPixel); //turn around
+                currDir = increaseDir(currDir, 1);
+                currPixel = NextPixel(currDir, currPixel);*/ //try the next direction*/
             }
+                
+           
 
             TraceAroundPoint(backgrC, InputImage, tracedPixels, initialDir, newDir, NextPixel(newDir, currPixel));
 
