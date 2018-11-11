@@ -16,13 +16,16 @@ namespace INFOIBV
         {
             List<drawPoint> contourPixels = new List<drawPoint>();
 
-            Stack<drawPoint> firstTracePoint = FindStartingPoint(InputImage, backgroundColor);
-            List<drawPoint> contourPoints = TraceContourPixels(backgroundColor, firstTracePoint, contourPixels, InputImage);
+     
+            drawPoint initialPoint = FindStartingPoint(InputImage, backgroundColor);
+            contourPixels.Add(initialPoint);
+            //initialDir moet eigenlijk de richtin zijn vanwaaruit findingtracepoint hem heeft gevonden, maar voor nu even zo.
+            List<drawPoint> contourPoints = TraceAroundPoint(backgroundColor, InputImage, contourPixels, Dir.O, Dir.O, initialPoint);
 
             return contourPixels.ToArray();
         }
 
-        Stack<drawPoint> FindStartingPoint(Color[,] InputImage, Color backGrC)
+        drawPoint FindStartingPoint(Color[,] InputImage, Color backGrC)
         {
             Stack<drawPoint> firstTracePoint = new Stack<drawPoint>();
             Color previousColor = backGrC;
@@ -33,65 +36,68 @@ namespace INFOIBV
                     Color currentColor = InputImage[u, v];
                     if (previousColor == backGrC && currentColor != backGrC)
                     {
-                        firstTracePoint.Push(new drawPoint(u, v));
-                        return firstTracePoint;
+
+                        return new drawPoint(u, v);
                     }
                 }
             throw new Exception("no startingPoint was found to trace the boundary");
-            return new Stack<drawPoint>();
         }
 
+        enum Dir {W, N, O, Z}
+
+        Array dirValues = Enum.GetValues(typeof(Dir));
+
+        Dir increaseDir(Dir d, int n)
+        {
+            int result = (int) d + n;
+            if( result > 3) //needs to loop around
+                result = result - 4;
+            return (Dir)result;
+        }
+
+
+        drawPoint NextPixel(Dir d, drawPoint pixel)
+        {
+            switch (d)
+            {
+                case Dir.W:
+                    return new drawPoint(pixel.X - 1, pixel.Y);
+                    break;
+                case Dir.N:
+                    return new drawPoint(pixel.X, pixel.Y - 1);
+                    break;
+                case Dir.O:
+                    return new drawPoint(pixel.X + 1, pixel.Y);
+                    break;
+                case Dir.Z:
+                    return new drawPoint(pixel.X, pixel.Y + 1);
+                    break;
+            }
+
+            throw new Exception("you entered a wrong direction");
+        }
 
 
         /// <summary>
         /// Handles the case that there is a transition from background to foreground in the image, and traces the figure found.
         /// </summary>
         /// <param name="backgrC">background color</param>
-        List<drawPoint> TraceContourPixels(Color backgrC, Stack<drawPoint> nextTracePoints, List<drawPoint> contourPixels, Color[,] InputImage)
+        List<drawPoint> TraceAroundPoint(Color backgrC, Color[,] InputImage, List<drawPoint> tracedPixels, Dir initialDir, Dir currDir, drawPoint currPixel)
         {
-            //if the first item on the stack is a contourPix,
-            //add the pixel to the contourPixelList
-            //for all pixels around it, check for each pixel:
-            //is it background, and Is it already in the nextTracePoints?
-            //If that is not the case, add it to the nextTracePoints.
-            drawPoint currentPoint = nextTracePoints.Pop();
-
-            if (isContourPix(backgrC, currentPoint, InputImage))
+            Dir newDir = increaseDir(currDir, 1); //next clockwise direction.
+            if(InputImage[currPixel.X, currPixel.Y] != backgrC)   
             {
-                contourPixels.Add(currentPoint);
-                if ((contourPixels.Count > 10) && SameApprPoint(contourPixels[0], currentPoint, 3))
-                return contourPixels; //the startingpoint has been reached.
-
-                //This is N8 chain code, for N4 only consider the 4 pixels straight up, below, left and right
-                for (int x = -1; x <= 1; x++) //kijk van rechtsonder naar linksboven, dan loop je minder snel terug.
-                    for (int y = -1; y <= 1; y++)
-                    {
-                        int xvalue = currentPoint.X + x;
-                        int yvalue = currentPoint.Y + y;
-                        if (!(x == 0 && y == 0)) //it is currentPoint, which was already processed
-                        {
-                            if (xvalue >= 0 && yvalue >= 0 && xvalue < InputImage.GetLength(0) && yvalue < InputImage.GetLength(1)) //check if pixel is not outside of image
-                            {
-                                if (InputImage[xvalue, yvalue] != backgrC) //backGr pixels can never be a border
-                                {
-                                    drawPoint nextTracePoint = new drawPoint(xvalue, yvalue);
-                                    if (!nextTracePoints.Contains(nextTracePoint)) //if the nextTracePoint is not already in the Queue
-                                    {
-                                        if (!contourPixels.Contains(nextTracePoint)) //if the nextTracePoint has not already been processed
-                                            nextTracePoints.Push(nextTracePoint);
-                                    }
-                                }
-
-                            }
-                        }
-
-                    }
+                if(currPixel == tracedPixels[0] && currDir == initialDir && tracedPixels.Count > 1) //startingpixel has been reached
+                {
+                    return tracedPixels;
+                }
+                tracedPixels.Add(new drawPoint(currPixel.X, currPixel.Y));
+                newDir = increaseDir(currDir, 2); //(+2) = turn around
             }
-            
-            if (nextTracePoints.Count > 0)
-                TraceContourPixels(backgrC, nextTracePoints, contourPixels, InputImage);
-            //If all edge pixels are traced, return the complete list of contourpixels 
-            return contourPixels;
+
+            TraceAroundPoint(backgrC, InputImage, tracedPixels, initialDir, newDir, NextPixel(newDir, currPixel));
+
+            return tracedPixels;
         }
 
 
