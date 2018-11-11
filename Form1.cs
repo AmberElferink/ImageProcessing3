@@ -109,12 +109,15 @@ namespace INFOIBV
                         try
                         {
                             var hand = isolateHand(pipelineImage, conDefList, CornerListToArray(cornerList));
+                            Console.WriteLine("Size hand: " + hand.Item1.GetLength(0) + "x" + hand.Item1.GetLength(1));
+                            Console.WriteLine("Number of corners: " + hand.Item2.Count);
+                            Console.WriteLine("Upperleft corner: (" + (hand.Item3.X + leftUpperBbX) + ", " + (hand.Item3.Y + leftUpperBbY) + ")");
                             drawPoint[] handConDefList = AddConvexDefects(CornerListToArray(hand.Item2), ConvexHull(hand.Item2), hand.Item1);
                             float[] handAngleList = cornerOfConvex(handConDefList);
                             drawPoint handLeftUpperBoundingBox = hand.Item3;
 
                             conDefList = handConDefList;
-                            leftUpperBoundingBox = handLeftUpperBoundingBox;
+                            leftUpperBoundingBox = new drawPoint(handLeftUpperBoundingBox.X + leftUpperBbX, handLeftUpperBoundingBox.Y + leftUpperBbY);
                             angleList = handAngleList;
                         }
                         catch (Exception error) { MessageBox2.Text = "Hand isolation failed - continuing with full region."; }
