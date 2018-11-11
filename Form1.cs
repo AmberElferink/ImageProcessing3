@@ -105,7 +105,18 @@ namespace INFOIBV
                         drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
                         float[] angleList = cornerOfConvex(conDefList);
                         drawPoint leftUpperBoundingBox = new drawPoint(leftUpperBbX, leftUpperBbY);
-                        toOutputBitmap(crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 13), greyscaleImage));
+
+                        try
+                        {
+                            var hand = isolateHand(pipelineImage, conDefList, CornerListToArray(cornerList));
+                            drawPoint[] handConDefList = AddConvexDefects(CornerListToArray(hand.Item2), ConvexHull(hand.Item2), hand.Item1);
+                            float[] handAngleList = cornerOfConvex(handConDefList);
+                            drawPoint handLeftUpperBoundingBox = hand.Item3;
+
+                        toOutputBitmap(crossesInImage(handConDefList, handLeftUpperBoundingBox, determineObject(handAngleList, 13), greyscaleImage));
+
+                        }
+                        catch (Exception error) { MessageBox2.Text = "Oopsie woopsie!"; }
                         //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                     }
                     catch (Exception error) { MessageBox2.Text = error.Message; }

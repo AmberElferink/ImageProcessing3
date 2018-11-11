@@ -784,6 +784,64 @@ namespace INFOIBV
                 return 3;
         }
 
+        Tuple<Color[,], List<Corner>, drawPoint> isolateHand(Color[,] InputImage, drawPoint[] ConDefPoints, drawPoint[] cornerPoints)
+        {
+            int xdim = 60;
+            if (xdim > InputImage.GetLength(0))
+                xdim = InputImage.GetLength(0);
+            int ydim = 60;
+            if (ydim > InputImage.GetLength(1))
+                ydim = InputImage.GetLength(1);
+
+            Color[,] outputImage = new Color[xdim,ydim];
+            drawPoint newLUBoundingBox = new drawPoint(0, 0);
+            int pointCount;
+            int totalPoints = 0;
+            List<Corner> newCornerPointsList = new List<Corner>();
+
+            // check nr of points from condeflist in bounding box
+            // if maximum is reached: note upper left corner, count regular corners in bounding box
+            for (int x = 0; x < InputImage.GetLength(0) - xdim; x++)
+            {
+                for (int y = 0; y < InputImage.GetLength(1) - ydim; y++)
+                {
+                    pointCount = 0;
+                    for (int i = 0; i < ConDefPoints.Length; i++)
+                    {
+                        if (ConDefPoints[i].X >= x && ConDefPoints[i].X <= x + xdim & ConDefPoints[i].Y >= y && ConDefPoints[i].Y <= y + ydim)
+                        {
+                            pointCount++;
+                        }
+                    }
+                    if (pointCount > totalPoints)
+                    {
+                        newLUBoundingBox = new drawPoint(x, y);
+                        newCornerPointsList = new List<Corner>();
+                        for (int i = 0; i < cornerPoints.Length; i++)
+                        {
+                            if (cornerPoints[i].X >= x && cornerPoints[i].X <= x + xdim & cornerPoints[i].Y >= y && cornerPoints[i].Y <= y + ydim)
+                            {
+                                newCornerPointsList.Add(new Corner(cornerPoints[i].X, cornerPoints[i].Y, 2000000.0f));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // after best bounding box has been established: copy image in bounding box
+            for (int x = 0; x < xdim; x++)
+            {
+                for (int y = 0; y < ydim; y++)
+                {
+                    outputImage[x, y] = InputImage[x + newLUBoundingBox.X, y + newLUBoundingBox.Y];
+                }
+            }
+
+            // return bounding box image, corners and upper left corner coordinate
+            Tuple<Color[,], List<Corner>, drawPoint> output = Tuple.Create(outputImage, newCornerPointsList, newLUBoundingBox);
+            return output;
+        }
+
 
 
 
