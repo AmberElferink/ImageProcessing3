@@ -113,13 +113,15 @@ namespace INFOIBV
                             float[] handAngleList = cornerOfConvex(handConDefList);
                             drawPoint handLeftUpperBoundingBox = hand.Item3;
 
-                        toOutputBitmap(crossesInImage(handConDefList, handLeftUpperBoundingBox, determineObject(handAngleList, 13), greyscaleImage));
-
+                            conDefList = handConDefList;
+                            leftUpperBoundingBox = handLeftUpperBoundingBox;
+                            angleList = handAngleList;
                         }
-                        catch (Exception error) { MessageBox2.Text = "Oopsie woopsie!"; }
+                        catch (Exception error) { MessageBox2.Text = "Hand isolation failed - continuing with full region."; }
+                        toOutputBitmap(crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 13), greyscaleImage));
                         //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                     }
-                    catch (Exception error) { MessageBox2.Text = error.Message; }
+                    catch (Exception error) { MessageBox2.Text = "Error - please try another image."; }
                 }
                 else if (ErosionRadio.Checked)
                     toOutputBitmap(ApplyErosionDilationFilter(Image, true));
