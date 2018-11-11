@@ -85,7 +85,7 @@ namespace INFOIBV
         List<drawPoint> TraceAroundPoint(Color backgrC, Color[,] InputImage, List<drawPoint> tracedPixels, Dir initialDir, Dir currDir, drawPoint currPixel)
         {
             Dir newDir = increaseDir(currDir, 1); //next clockwise direction.
-            if (!(currPixel.X >= InputImage.GetLength(0) || currPixel.Y >= InputImage.GetLength(1)))
+            if (!(currPixel.X >= InputImage.GetLength(0) || currPixel.Y >= InputImage.GetLength(1) || currPixel.X < 0 || currPixel.Y < 0))
             {
                 if (InputImage[currPixel.X, currPixel.Y] != backgrC)
                 {
