@@ -97,8 +97,7 @@ namespace INFOIBV
                     
                 else if (pipelineRadio.Checked)
                 {
-                    try
-                    {
+                    
                         Color[,] pipelineImage = PreprocessingPipeline(Image);
                         CreateSobelKernel(0, ref Kx, ref Ky);
                         List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, pipelineImage);
@@ -123,8 +122,8 @@ namespace INFOIBV
                         catch (Exception error) { MessageBox2.Text = "Hand isolation failed - continuing with full region."; }
                         toOutputBitmap(crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 13), greyscaleImage));
                         //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
-                    }
-                    catch (Exception error) { MessageBox2.Text = "Error - please try another image."; }
+                    
+                   // catch (Exception error) { MessageBox2.Text = "Error - please try another image."; }
                 }
                 else if (ErosionRadio.Checked)
                     toOutputBitmap(ApplyErosionDilationFilter(Image, true));
