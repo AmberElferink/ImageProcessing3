@@ -120,7 +120,9 @@ namespace INFOIBV
                             angleList = handAngleList;
                         }
                         catch (Exception error) { MessageBox2.Text = "Hand isolation failed - continuing with full region."; }
-                        toOutputBitmap(crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 13), greyscaleImage));
+                        kernelInput.Text = WritedrawPointArr(conDefList);
+                        toOutputBitmap(crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 12), greyscaleImage));
+                        
                         //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
                     
                    // catch (Exception error) { MessageBox2.Text = "Error - please try another image."; }
