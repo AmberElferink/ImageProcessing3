@@ -152,10 +152,10 @@ namespace INFOIBV
                 }
                 catch (Exception error) { MessageBox2.Text = error.Message; }
 
-                kernelInput.Text = WritedrawPointArr(conDefList) + "\r\n" + WritedrawFloatArr(angleList);
+                kernelInput.Text = WriteAnglesDistances(angleList, conDefList, 8, 40);
 
                 drawPoint[] oImageConDef = OriginalImagePoints(conDefList, leftUpperBoundingBox);
-                Color drawColor = StateToColor(determineObject(angleList, 8, 20));
+                Color drawColor = StateToColor(determineObject(angleList, 8, 40));
                 toOutputBitmap(CrossesInImage(oImageConDef, DrawLinesBetwPoints(oImageConDef, greyscaleImage, Color.CadetBlue), drawColor));
 
                 //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
@@ -276,23 +276,40 @@ namespace INFOIBV
 
         String WritedrawPointArr(drawPoint[] drawPoints)
         {
-            String output = "{";
-            for (int i = 0; i < drawPoints.Length; i++)
+            String output = "";
+            for (int n = 0; n < drawPoints.Length; n++)
             {
-                output = output + "(" + drawPoints[i].X + "," + drawPoints[i].Y + "), ";
+                output = output + drawPoints[n].X + "\t" + drawPoints[n].Y + "\r\n";
             }
-            output += "}";
+            return output;
+        }
+
+        String WriteAnglesDistances(float[] angles, drawPoint[] points, int lowerThr, int upperThr)
+        {
+            String output = "";
+            if (angles[0] > lowerThr && angles[0] < upperThr)
+                    output = output + angles[0] + "\t" + SqDistancePoints(points[points.Length - 1], points[0]) + "\t" + SqDistancePoints(points[0], points[1]) + "\r\n";
+            for (int n = 1; n < points.Length - 1; n++)
+            {
+                if(angles[n] > lowerThr && angles[n] < upperThr)
+                { 
+
+                    output = output + angles[n] + "\t" + SqDistancePoints(points[n], points[n - 1]) + "\t" + SqDistancePoints(points[n], points[n + 1]) + "\r\n";
+                }
+
+            }
+            if (angles[0] > lowerThr && angles[0] < upperThr)
+                output = output + angles[points.Length - 1] + "\t" + SqDistancePoints(points[points.Length - 2], points[points.Length -1]) + "\t" + SqDistancePoints(points[points.Length - 1], points[0]) + "\r\n";
             return output;
         }
 
         String WritedrawFloatArr(float[] fs)
         {
-            String output = "{";
+            String output = "";
             for (int i = 0; i < fs.Length; i++)
             {
-                output = output + fs[i] + ", ";
+                output = output + fs[i] + "\r\n";
             }
-            output += "}";
             return output;
         }
 

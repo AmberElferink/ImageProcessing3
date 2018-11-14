@@ -60,6 +60,9 @@
             this.pipelineRadio = new System.Windows.Forms.RadioButton();
             this.findCentroid = new System.Windows.Forms.RadioButton();
             this.testButton = new System.Windows.Forms.RadioButton();
+            this.angleOutput = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.thresholdTrackbar)).BeginInit();
@@ -86,7 +89,7 @@
             this.imageFileName1.Location = new System.Drawing.Point(116, 14);
             this.imageFileName1.Name = "imageFileName1";
             this.imageFileName1.ReadOnly = true;
-            this.imageFileName1.Size = new System.Drawing.Size(316, 20);
+            this.imageFileName1.Size = new System.Drawing.Size(411, 20);
             this.imageFileName1.TabIndex = 1;
             // 
             // pictureBox1
@@ -143,10 +146,10 @@
             // 
             // kernelInput
             // 
-            this.kernelInput.Location = new System.Drawing.Point(15, 582);
+            this.kernelInput.Location = new System.Drawing.Point(1088, 41);
             this.kernelInput.Multiline = true;
             this.kernelInput.Name = "kernelInput";
-            this.kernelInput.Size = new System.Drawing.Size(216, 128);
+            this.kernelInput.Size = new System.Drawing.Size(148, 335);
             this.kernelInput.TabIndex = 7;
             this.kernelInput.Text = resources.GetString("kernelInput.Text");
             // 
@@ -229,7 +232,7 @@
             // checkBinary
             // 
             this.checkBinary.AutoSize = true;
-            this.checkBinary.Location = new System.Drawing.Point(438, 18);
+            this.checkBinary.Location = new System.Drawing.Point(533, 19);
             this.checkBinary.Name = "checkBinary";
             this.checkBinary.Size = new System.Drawing.Size(91, 17);
             this.checkBinary.TabIndex = 29;
@@ -239,7 +242,7 @@
             // checkBlackBackground
             // 
             this.checkBlackBackground.AutoSize = true;
-            this.checkBlackBackground.Location = new System.Drawing.Point(535, 17);
+            this.checkBlackBackground.Location = new System.Drawing.Point(630, 18);
             this.checkBlackBackground.Name = "checkBlackBackground";
             this.checkBlackBackground.Size = new System.Drawing.Size(194, 17);
             this.checkBlackBackground.TabIndex = 30;
@@ -282,7 +285,7 @@
             // RightAsInput
             // 
             this.RightAsInput.AutoSize = true;
-            this.RightAsInput.Location = new System.Drawing.Point(727, 18);
+            this.RightAsInput.Location = new System.Drawing.Point(822, 19);
             this.RightAsInput.Name = "RightAsInput";
             this.RightAsInput.Size = new System.Drawing.Size(142, 17);
             this.RightAsInput.TabIndex = 34;
@@ -351,7 +354,7 @@
             // pipelineRadio
             // 
             this.pipelineRadio.AutoSize = true;
-            this.pipelineRadio.Location = new System.Drawing.Point(258, 579);
+            this.pipelineRadio.Location = new System.Drawing.Point(1088, 559);
             this.pipelineRadio.Name = "pipelineRadio";
             this.pipelineRadio.Size = new System.Drawing.Size(138, 17);
             this.pipelineRadio.TabIndex = 39;
@@ -383,11 +386,40 @@
             this.testButton.UseVisualStyleBackColor = true;
             this.testButton.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged_1);
             // 
+            // angleOutput
+            // 
+            this.angleOutput.Location = new System.Drawing.Point(1258, 41);
+            this.angleOutput.Multiline = true;
+            this.angleOutput.Name = "angleOutput";
+            this.angleOutput.Size = new System.Drawing.Size(100, 335);
+            this.angleOutput.TabIndex = 42;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(1258, 19);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(38, 13);
+            this.label1.TabIndex = 43;
+            this.label1.Text = "angles";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(1088, 22);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(112, 13);
+            this.label2.TabIndex = 44;
+            this.label2.Text = "points, format X Tab Y";
+            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1078, 739);
+            this.ClientSize = new System.Drawing.Size(1516, 739);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.angleOutput);
             this.Controls.Add(this.testButton);
             this.Controls.Add(this.findCentroid);
             this.Controls.Add(this.pipelineRadio);
@@ -463,6 +495,9 @@
         private System.Windows.Forms.RadioButton pipelineRadio;
         private System.Windows.Forms.RadioButton findCentroid;
         private System.Windows.Forms.RadioButton testButton;
+        private System.Windows.Forms.TextBox angleOutput;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
     }
 }
 
