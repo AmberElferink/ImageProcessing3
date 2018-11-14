@@ -195,8 +195,16 @@ namespace INFOIBV
 
 
 
-
-        List<Corner> HarrisCornerDetection(float[,] Kx, float[,] Ky, Color[,] InputImage)
+        /// <summary>
+        /// returns a corner list with Qvalues in there. This is a measure for the contrast in the x and the y direction combined.
+        /// </summary>
+        /// <param name="Kx">X direction of the kernel (for instance Sobel)</param>
+        /// <param name="Ky">Y direction of the kernel (for instance Sobel)</param>
+        /// <param name="InputImage"></param>
+        /// <param name="cornerThreshold">min Qvalue to be a corner. Standard 2000000 for a thresholded image.</param>
+        /// <param name="minDistBetwCorners">corners close to eachother are thrown away, this is the minimum pixel distance that can be between two pixels</param>
+        /// <returns></returns>
+        List<Corner> HarrisCornerDetection(float[,] Kx, float[,] Ky, Color[,] InputImage, int cornerThreshold = 2000000, float minDistBetwCorners = 2.25f)
         {
 
             float[,] Avalues = new float[InputImage.GetLength(0), InputImage.GetLength(1)];
@@ -229,8 +237,8 @@ namespace INFOIBV
             Cvalues = ApplyGaussianQvalues(Cvalues, 1.1f, 5, InputImage);
             float[,] Qvalues = CalculateQvalues(Avalues, Bvalues, Cvalues, InputImage);
             //float[,] highestQvalues = PickStrongestCorners(Qvalues, 10);
-            List<Corner> cornerList = QToCorners(Qvalues, 2000000);
-            List<Corner> goodCorners = cleanUpCorners(cornerList, 2.25); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
+            List<Corner> cornerList = QToCorners(Qvalues, cornerThreshold);
+            List<Corner> goodCorners = cleanUpCorners(cornerList, minDistBetwCorners); //dmin waarde opzoeken, Alg. 4.1 regel 8-16
             return goodCorners;
         }
 
@@ -567,42 +575,75 @@ namespace INFOIBV
             return 0; //  (* Orientation is neutral aka collinear  *)
         }
 
-        // This function draws points in the original image based on a provided list of points, the position of the upperleft corner of the bounding box and a state describing what the object is.
-        Color[,] crossesInImage(drawPoint[] point, drawPoint min, int state, Color[,] InputImage)
+        
+        /// <summary>
+        /// This function draws crosses in the original image based on a provided list of points, the position of the upperleft corner of the bounding box and a state describing what the object is.
+        /// </summary>
+        /// <param name="oImagePoints">original image points</param>
+        /// <param name="InputImage"></param>
+        /// <param name="stateColor"></param>
+        /// <returns></returns>
+        Color[,] CrossesInImage(drawPoint[] oImagePoints, Color[,] InputImage, Color stateColor)
         {
-            int R = 0;
-            int G = 0;
-            int B = 0;
+            
             Color[,] finalImage = new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
-            // We use green pixels for state 1 (pointing hand), yellow pixels for state 2 (spread hand), and red pixels for state 3 (unidentified object).
-            if (state == 1 || state == 2)
-                G = 255;
-            if (state == 2 || state == 3)
-                R = 255;
+
 
             // We copy the original image and then add pixels for each point in the list.
             for (int x = 0; x < InputImage.GetLength(0); x++)
             {
                 for (int y = 0; y < InputImage.GetLength(1); y++)
                 {
-                    finalImage[x, y] = Image[x, y];
+                    finalImage[x, y] = InputImage[x, y];
                 }
             }
-            Color stateColor = Color.FromArgb(R, G, B);
-            for (int i = 0; i < point.Length; i++) {
-                finalImage[min.X + point[i].X, min.Y + point[i].Y] = stateColor;
-                if (min.X + point[i].X + 1 <= InputImage.GetLength(0) && min.Y + point[i].Y + 1 <= InputImage.GetLength(1))
-                    finalImage[min.X + point[i].X + 1, min.Y + point[i].Y + 1] = stateColor;
-                if (min.X + point[i].X - 1 >= 0 && min.Y + point[i].Y + 1 <= InputImage.GetLength(1))
-                    finalImage[min.X + point[i].X - 1, min.Y + point[i].Y + 1] = stateColor;
-                if (min.X + point[i].X + 1 <= InputImage.GetLength(0) && min.Y + point[i].Y - 1 >= 0)
-                    finalImage[min.X + point[i].X + 1, min.Y + point[i].Y - 1] = stateColor;
-                if (min.X + point[i].X - 1 >= 0 && min.Y + point[i].Y - 1 >= 0)
-                    finalImage[min.X + point[i].X - 1, min.Y + point[i].Y - 1] = stateColor;
+
+            for (int i = 0; i < oImagePoints.Length; i++) {
+
+
+
+                int oImXp1 = oImagePoints[i].X + 1;
+                int oImXm1 = oImagePoints[i].X - 1;
+                int minYp1 = oImagePoints[i].Y + 1;
+                int minYm1 = oImagePoints[i].Y - 1;
+
+                finalImage[oImagePoints[i].X, oImagePoints[i].Y] = stateColor;
+                if (oImXp1 <= InputImage.GetLength(0) && minYp1 <= InputImage.GetLength(1))
+                    finalImage[oImXp1, minYp1] = stateColor;
+                if (oImXm1 >= 0 && minYp1 <= InputImage.GetLength(1))
+                    finalImage[oImXm1, minYp1] = stateColor;
+                if (oImXp1 <= InputImage.GetLength(0) && minYm1 >= 0)
+                    finalImage[oImXp1, minYm1] = stateColor;
+                if (oImXm1 >= 0 && minYm1 >= 0)
+                    finalImage[oImXm1, minYm1] = stateColor;
             }
             return finalImage;
         }
 
+        drawPoint[] OriginalImagePoints(drawPoint[] points, drawPoint min)
+        {
+            for (int i = 0; i < points.Length; i++)
+            {
+                int newX = min.X + points[i].X;
+                int newY = min.Y + points[i].Y;
+                points[i] = new drawPoint(newX, newY);
+            }
+            return points;
+        }
+
+        Color StateToColor(int state)
+        {
+            int R = 0;
+            int G = 0;
+            int B = 0;
+
+            // We use green pixels for state 1 (pointing hand), yellow pixels for state 2 (spread hand), and red pixels for state 3 (unidentified object).
+            if (state == 1 || state == 2)
+                G = 255;
+            if (state == 2 || state == 3)
+                R = 255;
+            return Color.FromArgb(R, G, B);
+        }
 
         //-------------------------------------Convex hull defects-----------------------------------
         //finds the inner 'hull' corners of the hand.
@@ -750,28 +791,35 @@ namespace INFOIBV
             return new drawPoint(totalX, totalY);
         }
 
-
-        float[] cornerOfConvex(drawPoint[] point)
+        
+        /// <summary>
+        /// Takes corners on indices i-1, i, i+1, from the list calculates the angle between line (i-1, i) and (i, i+1) and outputs the values in degrees.
+        /// It loops over the entire list like this, also looping from the last point back to the first.
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        float[] cornerOfConvex(drawPoint[] points) 
         {
-            float[] angleList = new float[point.Length];
-            Console.WriteLine(point.Length);
-            for (int i = 0; i < point.Length; i++)
+            float[] angleList = new float[points.Length];
+            Console.WriteLine(points.Length);
+            for (int i = 0; i < points.Length; i++)
             {
                 int previousPoint = i - 1;
                 if (i - 1 < 0)
-                    previousPoint = point.Length - 1;
+                    previousPoint = points.Length - 1;
                 int nextPoint = i + 1;
-                if (i + 1 > point.Length - 1)
+                if (i + 1 > points.Length - 1)
                     nextPoint = 0;
-                Vector vector1 = new Vector(point[i].X - point[previousPoint].X, point[i].Y - point[previousPoint].Y);
+                Vector vector1 = new Vector(points[i].X - points[previousPoint].X, points[i].Y - points[previousPoint].Y);
                 double vector1length = Math.Sqrt((vector1.X * vector1.X) + (vector1.Y * vector1.Y));
-                Vector vector2 = new Vector(point[i].X - point[nextPoint].X, point[i].Y - point[nextPoint].Y);
+                Vector vector2 = new Vector(points[i].X - points[nextPoint].X, points[i].Y - points[nextPoint].Y);
                 double vector2length = Math.Sqrt((vector2.X * vector2.X) + (vector2.Y * vector2.Y));
                 double dot = (vector1.X * vector2.X) + (vector1.Y * vector2.Y);
                 double vec1vec2length = vector1length * vector2length;
                 double cosineRule = dot / vec1vec2length;
                 float angle = (float)Math.Acos(cosineRule);
-                angleList[i] = angle;
+                float angleDeg = angle * 180 / Pi;
+                angleList[i] = angleDeg;
             }
             return angleList;
         }
@@ -780,15 +828,14 @@ namespace INFOIBV
         /// 
         /// </summary>
         /// <param name="angleList">Angles to check for</param>
-        /// <param name="cornerThreshold">threshold in degrees. Lower than cornerthreshold is seen as finger</param>
+        /// <param name="upperCornThresh">threshold in degrees. Lower than cornerthreshold is seen as finger</param>
         /// <returns>returns 1: pointing finger, 2: spread hand, 3: unidentified object</returns>
-        int determineObject(float[] angleList, float cornerThreshold)
+        int determineObject(float[] angleList, float lowerCornThresh, float upperCornThresh)
         {
             int fingers = 0;
-            float radian = cornerThreshold * Pi / 180;
             for (int i = 0; i < angleList.Length; i++)
             {
-                if (angleList[i] < radian)
+                if (angleList[i] > lowerCornThresh && angleList[i] < upperCornThresh) //all these values are in degrees
                     fingers++;
             }
             if (fingers == 1)

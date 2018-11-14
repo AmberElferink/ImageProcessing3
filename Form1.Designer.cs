@@ -59,6 +59,7 @@
             this.cornerDetRadio = new System.Windows.Forms.RadioButton();
             this.pipelineRadio = new System.Windows.Forms.RadioButton();
             this.findCentroid = new System.Windows.Forms.RadioButton();
+            this.testButton = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.thresholdTrackbar)).BeginInit();
@@ -370,11 +371,24 @@
             this.findCentroid.UseVisualStyleBackColor = true;
             this.findCentroid.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
+            // testButton
+            // 
+            this.testButton.AutoSize = true;
+            this.testButton.Location = new System.Drawing.Point(837, 627);
+            this.testButton.Name = "testButton";
+            this.testButton.Size = new System.Drawing.Size(73, 17);
+            this.testButton.TabIndex = 41;
+            this.testButton.TabStop = true;
+            this.testButton.Text = "testButton";
+            this.testButton.UseVisualStyleBackColor = true;
+            this.testButton.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged_1);
+            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1078, 739);
+            this.Controls.Add(this.testButton);
             this.Controls.Add(this.findCentroid);
             this.Controls.Add(this.pipelineRadio);
             this.Controls.Add(this.regionLabelRadio);
@@ -407,6 +421,7 @@
             this.Name = "INFOIBV";
             this.ShowIcon = false;
             this.Text = "INFOIBV";
+            this.Load += new System.EventHandler(this.INFOIBV_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.thresholdTrackbar)).EndInit();
@@ -447,6 +462,7 @@
         private System.Windows.Forms.RadioButton cornerDetRadio;
         private System.Windows.Forms.RadioButton pipelineRadio;
         private System.Windows.Forms.RadioButton findCentroid;
+        private System.Windows.Forms.RadioButton testButton;
     }
 }
 

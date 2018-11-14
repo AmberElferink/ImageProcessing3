@@ -11,7 +11,7 @@ namespace INFOIBV
 {
     public partial class INFOIBV : Form
     {
-        
+
         private Bitmap InputImage;
         private Bitmap OutputImage;
         Color[,] Image;
@@ -60,6 +60,10 @@ namespace INFOIBV
                 kernelInput.Text = WritedrawPointArr(boundary);
                 BoundaryToOutput(boundary, Image);
             }
+            else if (testButton.Checked)
+            {
+               
+            }
             else if (cornerDetRadio.Checked)
             {
                 int n = 0;
@@ -69,86 +73,162 @@ namespace INFOIBV
                 kernelInput.Text = WritedrawPointArr(CornerListToArray(corners));
             }
 
-            else
-            {
 
-                if (ValueRadio.Checked)
-                    kernelInput.Text = "Unique values: " + valueCount(generateHistogram(Image));
-                else if (thresholdRadio.Checked)       
-                    toOutputBitmap(ApplyThresholdFilter(Image, thresholdTrackbar.Value));
-                else if (edgeDetection.Checked)
-                    toOutputBitmap(ApplyEdgeDetection(Image));
-                else if (findCentroid.Checked)
+            if (ValueRadio.Checked)
+                kernelInput.Text = "Unique values: " + valueCount(generateHistogram(Image));
+            else if (thresholdRadio.Checked)
+                toOutputBitmap(ApplyThresholdFilter(Image, thresholdTrackbar.Value));
+            else if (edgeDetection.Checked)
+                toOutputBitmap(ApplyEdgeDetection(Image));
+            else if (findCentroid.Checked)
+            {
+                try
                 {
+                    drawPoint[] point = new drawPoint[1];
+                    drawPoint centroid = FindCentroid(ColorArrayToDrawPoints(Image));
+                    point[0] = centroid;
+                    drawPointsToImage(point, Image);
+                }
+                catch (Exception error) { MessageBox2.Text = error.Message; }
+            }
+
+            else if (greyscaleRadio.Checked)
+                toOutputBitmap(ApplyGreyscale(Image));
+            else if (preprocessingRadio.Checked)
+                toOutputBitmap(PreprocessingPipeline(Image));
+
+            else if (pipelineRadio.Checked)
+            {
+                drawPoint[] conDefList = new drawPoint[0];
+                drawPoint leftUpperBoundingBox = new drawPoint(0, 0);
+                float[] angleList = new float[0];
+                try
+                {
+                    Color[,] pipelineImage = PreprocessingPipeline(Image);
+                    CreateSobelKernel(0, ref Kx, ref Ky);
+                    List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, pipelineImage);
+                    drawPoint[] cornerArray = CornerListToArray(cornerList);
+
                     try
                     {
-                        drawPoint[] point = new drawPoint[1];
-                        drawPoint centroid = FindCentroid(ColorArrayToDrawPoints(Image));
-                        point[0] = centroid;
-                        drawPointsToImage(point, Image);
+                        //calculate the convex hull, by drawing a 'border' around the outer pixels, and add the inward points close to the far center in the hand
+                        conDefList = AddConvexDefects(cornerArray, ConvexHull(cornerList), pipelineImage);
+                        //calculate the angles between each of the neigbouring points in the hand.
+                        angleList = cornerOfConvex(conDefList);
+                        leftUpperBoundingBox = new drawPoint(leftUpperBbX, leftUpperBbY);
                     }
-                    catch (Exception error) { MessageBox2.Text = error.Message; }
+                    catch (Exception)
+                    {
+                        //if only two points were found, no border can be drawn, and output will be given to determine why not.
+                        toOutputBitmap(pipelineImage);
+                        AddDrawPointsToImage(pipelineImage, cornerArray); //show the preprocessed structure with found corners.
+                        throw new Exception("Largest area after preprocessing does not have enough corners to proceed. This is not a hand, or only the sleeve has been processed");
+                    }
+
+
+
+                    try
+                    {
+                        //the most corners from convexhull and defects are likely found in the hand
+                        //scan over the image and find the box that contains the most points
+                        //this can be used to calculate a more accurate centroid, and get more better defects.
+                        Tuple<Color[,], List<Corner>, drawPoint> hand = isolateHand(pipelineImage, conDefList, cornerArray);
+
+                        Console.WriteLine("Size hand: " + hand.Item1.GetLength(0) + "x" + hand.Item1.GetLength(1));
+                        Console.WriteLine("Number of corners: " + hand.Item2.Count);
+                        Console.WriteLine("Upperleft corner: (" + (hand.Item3.X + leftUpperBbX) + ", " + (hand.Item3.Y + leftUpperBbY) + ")");
+
+                        //calculate the convex d
+                        drawPoint[] handConDefList = AddConvexDefects(CornerListToArray(hand.Item2), ConvexHull(hand.Item2), hand.Item1);
+                        angleList = cornerOfConvex(handConDefList);
+                        drawPoint handLeftUpperBoundingBox = hand.Item3;
+
+                        conDefList = handConDefList;
+                        leftUpperBoundingBox = new drawPoint(handLeftUpperBoundingBox.X + leftUpperBbX, handLeftUpperBoundingBox.Y + leftUpperBbY);
+                    }
+                    catch { throw new Exception("Hand isolation failed - continuing with full region."); }
+
+
                 }
+                catch (Exception error) { MessageBox2.Text = error.Message; }
 
-                else if (greyscaleRadio.Checked)
-                    toOutputBitmap(ApplyGreyscale(Image));
-                else if (preprocessingRadio.Checked)
-                   toOutputBitmap(PreprocessingPipeline(Image));
-                    
-                else if (pipelineRadio.Checked)
-                {
-                    
-                        Color[,] pipelineImage = PreprocessingPipeline(Image);
-                        CreateSobelKernel(0, ref Kx, ref Ky);
-                        List<Corner> cornerList = HarrisCornerDetection(Kx, Ky, pipelineImage);
-                        drawPoint[] conDefList = AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage);
-                        float[] angleList = cornerOfConvex(conDefList);
-                        drawPoint leftUpperBoundingBox = new drawPoint(leftUpperBbX, leftUpperBbY);
+                kernelInput.Text = WritedrawPointArr(conDefList) + "\r\n" + WritedrawFloatArr(angleList);
 
-                        try
-                        {
-                            var hand = isolateHand(pipelineImage, conDefList, CornerListToArray(cornerList));
-                            Console.WriteLine("Size hand: " + hand.Item1.GetLength(0) + "x" + hand.Item1.GetLength(1));
-                            Console.WriteLine("Number of corners: " + hand.Item2.Count);
-                            Console.WriteLine("Upperleft corner: (" + (hand.Item3.X + leftUpperBbX) + ", " + (hand.Item3.Y + leftUpperBbY) + ")");
-                            drawPoint[] handConDefList = AddConvexDefects(CornerListToArray(hand.Item2), ConvexHull(hand.Item2), hand.Item1);
-                            float[] handAngleList = cornerOfConvex(handConDefList);
-                            drawPoint handLeftUpperBoundingBox = hand.Item3;
+                drawPoint[] oImageConDef = OriginalImagePoints(conDefList, leftUpperBoundingBox);
+                Color drawColor = StateToColor(determineObject(angleList, 8, 20));
+                toOutputBitmap(CrossesInImage(oImageConDef, DrawLinesBetwPoints(oImageConDef, greyscaleImage, Color.CadetBlue), drawColor));
 
-                            conDefList = handConDefList;
-                            leftUpperBoundingBox = new drawPoint(handLeftUpperBoundingBox.X + leftUpperBbX, handLeftUpperBoundingBox.Y + leftUpperBbY);
-                            angleList = handAngleList;
-                        }
-                        catch (Exception error) { MessageBox2.Text = "Hand isolation failed - continuing with full region."; }
-                        kernelInput.Text = WritedrawPointArr(conDefList);
-                        toOutputBitmap(crossesInImage(conDefList, leftUpperBoundingBox, determineObject(angleList, 12), greyscaleImage));
-                        
-                        //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
-                    
-                   // catch (Exception error) { MessageBox2.Text = "Error - please try another image."; }
-                }
-                else if (ErosionRadio.Checked)
-                    toOutputBitmap(ApplyErosionDilationFilter(Image, true));
-                else if (DilationRadio.Checked)
-                    toOutputBitmap(ApplyErosionDilationFilter(Image, false));
-                else if (OpeningRadio.Checked)
-                    toOutputBitmap(ApplyOpeningClosingFilter(Image, true));
-                else if (ClosingRadio.Checked)
-                    toOutputBitmap(ApplyOpeningClosingFilter(Image, false));
+                //kernelInput.Text = WritedrawPointArr(AddConvexDefects(CornerListToArray(cornerList), ConvexHull(cornerList), pipelineImage));
 
-                //toOutputBitmap(newImage);
-                //greyscale, region labelling, opening closing (dus erosion dilation), 
-                //weg: Fourier, complement WritedrawVectArr
-
+                // catch (Exception error) { MessageBox2.Text = "Error - please try another image."; }
             }
+            else if (ErosionRadio.Checked)
+                toOutputBitmap(ApplyErosionDilationFilter(Image, true));
+            else if (DilationRadio.Checked)
+                toOutputBitmap(ApplyErosionDilationFilter(Image, false));
+            else if (OpeningRadio.Checked)
+                toOutputBitmap(ApplyOpeningClosingFilter(Image, true));
+            else if (ClosingRadio.Checked)
+                toOutputBitmap(ApplyOpeningClosingFilter(Image, false));
+
+            //toOutputBitmap(newImage);
+            //greyscale, region labelling, opening closing (dus erosion dilation), 
+            //weg: Fourier, complement WritedrawVectArr
+
+        }
+
+
+
+
+        Color[,] AddDrawPointsToImage(Color[,] InputImage, drawPoint[] points)
+        {
+
+            foreach (drawPoint p in points)
+                InputImage[p.X, p.Y] = Color.Red;
+            return InputImage;
+
+        }
+
+        Color[,] DrawLinesBetwPoints(drawPoint[] points, Color[,] InputImage, Color drawColor)
+        {
+            Stack<drawPoint> sPoints = new Stack<drawPoint>(points);
+            drawPoint firstPoint = sPoints.Peek();
+            while(sPoints.Count > 1)
+            {
+                drawPoint p1 = sPoints.Pop();
+                drawPoint p2 = sPoints.Pop();
+                InputImage = DrawLine(p1, p2, InputImage, drawColor);
+                sPoints.Push(p2);
+            }
+            InputImage = DrawLine(firstPoint, sPoints.Pop(), InputImage, drawColor);
+            return InputImage;
+        }
+
+        Color[,] DrawLine(drawPoint A, drawPoint B, Color[,] InputImage, Color drawColor)
+        {
+            Color foreGrColor = drawColor;
+            float x0 = A.X;
+            float y0 = A.Y;
+            float deltaX = B.X - A.X;
+            float deltaY = B.Y - A.Y;
+            float maximum = Math.Max(Math.Abs(deltaX), Math.Abs(deltaY));
+            deltaX /= maximum;
+            deltaY /= maximum;
+            for (float n = 0; n < maximum; ++n)
+            {
+                // draw pixel at ( A.X, A.Y )
+                x0 += deltaX; y0 += deltaY;
+                InputImage[(int)x0, (int)y0] = foreGrColor;
+            }
+            return InputImage;
         }
 
         drawPoint[] ColorArrayToDrawPoints(Color[,] image)
         {
             Color backgroundColor = getBackgroundColor();
             List<drawPoint> drawpoints = new List<drawPoint>();
-            for(int u = 0; u <image.GetLength(0); u++)
-                for(int v = 0; v < image.GetLength(1); v++)
+            for (int u = 0; u < image.GetLength(0); u++)
+                for (int v = 0; v < image.GetLength(1); v++)
                 {
                     if (image[u, v] != backgroundColor)
                         drawpoints.Add(new drawPoint(u, v));
@@ -156,7 +236,7 @@ namespace INFOIBV
                 }
             return drawpoints.ToArray();
         }
-        
+
         drawPoint[] CornerListToArray(List<Corner> cornerList)
         {
             drawPoint[] cornerArray = new drawPoint[cornerList.Count];
@@ -165,11 +245,11 @@ namespace INFOIBV
             return cornerArray;
         }
 
-        Color getBackgroundColor ()
+        Color getBackgroundColor()
         {
             if (checkBlackBackground.Checked)
                 return Color.FromArgb(255, 0, 0, 0);
-            
+
             return Color.FromArgb(255, 255, 255, 255);
         }
 
@@ -205,14 +285,25 @@ namespace INFOIBV
             return output;
         }
 
+        String WritedrawFloatArr(float[] fs)
+        {
+            String output = "{";
+            for (int i = 0; i < fs.Length; i++)
+            {
+                output = output + fs[i] + ", ";
+            }
+            output += "}";
+            return output;
+        }
+
         float Pi = (float)Math.PI;
 
-       
 
 
 
 
-     
+
+
 
 
 
@@ -239,13 +330,13 @@ namespace INFOIBV
                 {
                     InputImage.Dispose();
                     InputImage = new Bitmap(OutputImage.Size.Width, OutputImage.Size.Height);
-                    
+
                     for (int x = 0; x < InputImage.Size.Width; x++)
                     {
                         for (int y = 0; y < InputImage.Size.Height; y++)
                         {
                             InputImage.SetPixel(x, y, OutputImage.GetPixel(x, y));               // Set the pixel color at coordinate (x,y)
-                                                                                  //OutputImage.SetPixel(x, y, newImage[x, y]);
+                                                                                                 //OutputImage.SetPixel(x, y, newImage[x, y]);
                         }
                     }
                     pictureBox1.Image = InputImage;
@@ -373,7 +464,7 @@ namespace INFOIBV
         /// <summary>
         /// Checks if a number is binary (used to check the valuecount of a histogram for binary images).
         /// </summary>
-         Tuple<Color[,], Boolean> MaybeBinary(Color[,] InputImage, int input)
+        Tuple<Color[,], Boolean> MaybeBinary(Color[,] InputImage, int input)
         {
             if (checkBinary.Checked)
             {
@@ -409,7 +500,7 @@ namespace INFOIBV
 
         // -------------------------------------------- TRACE BOUNDARY CODE --------------------------------------------
 
-       
+
 
 
         Color[,] ApplyEdgeDetection(Color[,] InputImage)
@@ -449,7 +540,7 @@ namespace INFOIBV
 
 
 
-       
+
 
 
 
@@ -472,7 +563,7 @@ namespace INFOIBV
         private void thresholdRadio_CheckedChanged(object sender, EventArgs e)
         {
             if (thresholdRadio.Checked)
-                thresholdTrackbar.Enabled = true;                
+                thresholdTrackbar.Enabled = true;
             else
                 thresholdTrackbar.Enabled = false;
         }
@@ -486,7 +577,17 @@ namespace INFOIBV
         {
 
         }
+
+        private void INFOIBV_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radioButton1_CheckedChanged_1(object sender, EventArgs e)
+        {
+
+        }
     }
 
-   
+
 }
