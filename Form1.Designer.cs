@@ -59,9 +59,6 @@
             this.cornerDetRadio = new System.Windows.Forms.RadioButton();
             this.pipelineRadio = new System.Windows.Forms.RadioButton();
             this.findCentroid = new System.Windows.Forms.RadioButton();
-            this.testButton = new System.Windows.Forms.RadioButton();
-            this.angleOutput = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.outputBox1)).BeginInit();
@@ -70,11 +67,11 @@
             // 
             // LoadImageButton1
             // 
-            this.LoadImageButton1.Location = new System.Drawing.Point(12, 12);
+            this.LoadImageButton1.Location = new System.Drawing.Point(1086, 626);
             this.LoadImageButton1.Name = "LoadImageButton1";
-            this.LoadImageButton1.Size = new System.Drawing.Size(98, 23);
+            this.LoadImageButton1.Size = new System.Drawing.Size(103, 23);
             this.LoadImageButton1.TabIndex = 0;
-            this.LoadImageButton1.Text = "Load image 1...";
+            this.LoadImageButton1.Text = "Load image...";
             this.LoadImageButton1.UseVisualStyleBackColor = true;
             this.LoadImageButton1.Click += new System.EventHandler(this.LoadImageButton1_Click);
             // 
@@ -86,15 +83,15 @@
             // 
             // imageFileName1
             // 
-            this.imageFileName1.Location = new System.Drawing.Point(116, 14);
+            this.imageFileName1.Location = new System.Drawing.Point(563, 626);
             this.imageFileName1.Name = "imageFileName1";
             this.imageFileName1.ReadOnly = true;
-            this.imageFileName1.Size = new System.Drawing.Size(411, 20);
+            this.imageFileName1.Size = new System.Drawing.Size(505, 20);
             this.imageFileName1.TabIndex = 1;
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Location = new System.Drawing.Point(15, 40);
+            this.pictureBox1.Location = new System.Drawing.Point(13, 26);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(512, 512);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
@@ -103,7 +100,7 @@
             // 
             // applyButton
             // 
-            this.applyButton.Location = new System.Drawing.Point(457, 687);
+            this.applyButton.Location = new System.Drawing.Point(1084, 557);
             this.applyButton.Name = "applyButton";
             this.applyButton.Size = new System.Drawing.Size(103, 23);
             this.applyButton.TabIndex = 3;
@@ -118,7 +115,7 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(902, 687);
+            this.saveButton.Location = new System.Drawing.Point(1086, 681);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(103, 23);
             this.saveButton.TabIndex = 4;
@@ -128,7 +125,7 @@
             // 
             // outputBox1
             // 
-            this.outputBox1.Location = new System.Drawing.Point(533, 41);
+            this.outputBox1.Location = new System.Drawing.Point(531, 27);
             this.outputBox1.Name = "outputBox1";
             this.outputBox1.Size = new System.Drawing.Size(512, 512);
             this.outputBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
@@ -137,26 +134,27 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(566, 664);
+            this.progressBar.Location = new System.Drawing.Point(563, 557);
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(278, 20);
+            this.progressBar.Size = new System.Drawing.Size(505, 20);
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar.TabIndex = 6;
             this.progressBar.Visible = false;
             // 
             // kernelInput
             // 
-            this.kernelInput.Location = new System.Drawing.Point(1088, 41);
+            this.kernelInput.Location = new System.Drawing.Point(1086, 27);
             this.kernelInput.Multiline = true;
             this.kernelInput.Name = "kernelInput";
             this.kernelInput.Size = new System.Drawing.Size(148, 335);
             this.kernelInput.TabIndex = 7;
             this.kernelInput.Text = resources.GetString("kernelInput.Text");
+            this.kernelInput.TextChanged += new System.EventHandler(this.kernelInput_TextChanged);
             // 
             // ErosionRadio
             // 
             this.ErosionRadio.AutoSize = true;
-            this.ErosionRadio.Location = new System.Drawing.Point(258, 606);
+            this.ErosionRadio.Location = new System.Drawing.Point(62, 557);
             this.ErosionRadio.Name = "ErosionRadio";
             this.ErosionRadio.Size = new System.Drawing.Size(60, 17);
             this.ErosionRadio.TabIndex = 9;
@@ -167,7 +165,7 @@
             // DilationRadio
             // 
             this.DilationRadio.AutoSize = true;
-            this.DilationRadio.Location = new System.Drawing.Point(258, 630);
+            this.DilationRadio.Location = new System.Drawing.Point(62, 580);
             this.DilationRadio.Name = "DilationRadio";
             this.DilationRadio.Size = new System.Drawing.Size(60, 17);
             this.DilationRadio.TabIndex = 10;
@@ -178,7 +176,7 @@
             // OpeningRadio
             // 
             this.OpeningRadio.AutoSize = true;
-            this.OpeningRadio.Location = new System.Drawing.Point(258, 653);
+            this.OpeningRadio.Location = new System.Drawing.Point(62, 603);
             this.OpeningRadio.Name = "OpeningRadio";
             this.OpeningRadio.Size = new System.Drawing.Size(65, 17);
             this.OpeningRadio.TabIndex = 11;
@@ -189,7 +187,7 @@
             // ClosingRadio
             // 
             this.ClosingRadio.AutoSize = true;
-            this.ClosingRadio.Location = new System.Drawing.Point(258, 676);
+            this.ClosingRadio.Location = new System.Drawing.Point(62, 626);
             this.ClosingRadio.Name = "ClosingRadio";
             this.ClosingRadio.Size = new System.Drawing.Size(59, 17);
             this.ClosingRadio.TabIndex = 12;
@@ -200,7 +198,7 @@
             // ValueRadio
             // 
             this.ValueRadio.AutoSize = true;
-            this.ValueRadio.Location = new System.Drawing.Point(457, 579);
+            this.ValueRadio.Location = new System.Drawing.Point(144, 603);
             this.ValueRadio.Name = "ValueRadio";
             this.ValueRadio.Size = new System.Drawing.Size(97, 17);
             this.ValueRadio.TabIndex = 15;
@@ -212,7 +210,7 @@
             // BoundaryRadio
             // 
             this.BoundaryRadio.AutoSize = true;
-            this.BoundaryRadio.Location = new System.Drawing.Point(457, 602);
+            this.BoundaryRadio.Location = new System.Drawing.Point(1086, 479);
             this.BoundaryRadio.Name = "BoundaryRadio";
             this.BoundaryRadio.Size = new System.Drawing.Size(101, 17);
             this.BoundaryRadio.TabIndex = 16;
@@ -223,16 +221,16 @@
             // 
             // MessageBox2
             // 
-            this.MessageBox2.Location = new System.Drawing.Point(566, 690);
+            this.MessageBox2.Location = new System.Drawing.Point(563, 684);
             this.MessageBox2.Name = "MessageBox2";
             this.MessageBox2.ReadOnly = true;
-            this.MessageBox2.Size = new System.Drawing.Size(319, 20);
+            this.MessageBox2.Size = new System.Drawing.Size(505, 20);
             this.MessageBox2.TabIndex = 23;
             // 
             // checkBinary
             // 
             this.checkBinary.AutoSize = true;
-            this.checkBinary.Location = new System.Drawing.Point(533, 19);
+            this.checkBinary.Location = new System.Drawing.Point(1086, 654);
             this.checkBinary.Name = "checkBinary";
             this.checkBinary.Size = new System.Drawing.Size(91, 17);
             this.checkBinary.TabIndex = 29;
@@ -242,7 +240,7 @@
             // checkBlackBackground
             // 
             this.checkBlackBackground.AutoSize = true;
-            this.checkBlackBackground.Location = new System.Drawing.Point(630, 18);
+            this.checkBlackBackground.Location = new System.Drawing.Point(886, 654);
             this.checkBlackBackground.Name = "checkBlackBackground";
             this.checkBlackBackground.Size = new System.Drawing.Size(194, 17);
             this.checkBlackBackground.TabIndex = 30;
@@ -252,7 +250,7 @@
             // thresholdRadio
             // 
             this.thresholdRadio.AutoSize = true;
-            this.thresholdRadio.Location = new System.Drawing.Point(727, 582);
+            this.thresholdRadio.Location = new System.Drawing.Point(144, 626);
             this.thresholdRadio.Margin = new System.Windows.Forms.Padding(2);
             this.thresholdRadio.Name = "thresholdRadio";
             this.thresholdRadio.Size = new System.Drawing.Size(97, 17);
@@ -265,7 +263,7 @@
             // thresholdTrackbar
             // 
             this.thresholdTrackbar.Enabled = false;
-            this.thresholdTrackbar.Location = new System.Drawing.Point(828, 582);
+            this.thresholdTrackbar.Location = new System.Drawing.Point(245, 626);
             this.thresholdTrackbar.Margin = new System.Windows.Forms.Padding(2);
             this.thresholdTrackbar.Maximum = 255;
             this.thresholdTrackbar.Name = "thresholdTrackbar";
@@ -276,7 +274,7 @@
             // 
             // edgeDetection
             // 
-            this.edgeDetection.Location = new System.Drawing.Point(727, 623);
+            this.edgeDetection.Location = new System.Drawing.Point(264, 553);
             this.edgeDetection.Name = "edgeDetection";
             this.edgeDetection.Size = new System.Drawing.Size(104, 24);
             this.edgeDetection.TabIndex = 33;
@@ -285,7 +283,7 @@
             // RightAsInput
             // 
             this.RightAsInput.AutoSize = true;
-            this.RightAsInput.Location = new System.Drawing.Point(822, 19);
+            this.RightAsInput.Location = new System.Drawing.Point(1086, 603);
             this.RightAsInput.Name = "RightAsInput";
             this.RightAsInput.Size = new System.Drawing.Size(142, 17);
             this.RightAsInput.TabIndex = 34;
@@ -295,7 +293,7 @@
             // thresholdValue
             // 
             this.thresholdValue.AutoSize = true;
-            this.thresholdValue.Location = new System.Drawing.Point(926, 581);
+            this.thresholdValue.Location = new System.Drawing.Point(343, 625);
             this.thresholdValue.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.thresholdValue.Name = "thresholdValue";
             this.thresholdValue.Size = new System.Drawing.Size(25, 13);
@@ -306,7 +304,7 @@
             // greyscaleRadio
             // 
             this.greyscaleRadio.AutoSize = true;
-            this.greyscaleRadio.Location = new System.Drawing.Point(727, 606);
+            this.greyscaleRadio.Location = new System.Drawing.Point(144, 557);
             this.greyscaleRadio.Margin = new System.Windows.Forms.Padding(2);
             this.greyscaleRadio.Name = "greyscaleRadio";
             this.greyscaleRadio.Size = new System.Drawing.Size(72, 17);
@@ -318,7 +316,7 @@
             // preprocessingRadio
             // 
             this.preprocessingRadio.AutoSize = true;
-            this.preprocessingRadio.Location = new System.Drawing.Point(587, 579);
+            this.preprocessingRadio.Location = new System.Drawing.Point(1086, 436);
             this.preprocessingRadio.Margin = new System.Windows.Forms.Padding(2);
             this.preprocessingRadio.Name = "preprocessingRadio";
             this.preprocessingRadio.Size = new System.Drawing.Size(132, 17);
@@ -330,7 +328,7 @@
             // regionLabelRadio
             // 
             this.regionLabelRadio.AutoSize = true;
-            this.regionLabelRadio.Location = new System.Drawing.Point(587, 600);
+            this.regionLabelRadio.Location = new System.Drawing.Point(144, 581);
             this.regionLabelRadio.Margin = new System.Windows.Forms.Padding(2);
             this.regionLabelRadio.Name = "regionLabelRadio";
             this.regionLabelRadio.Size = new System.Drawing.Size(102, 17);
@@ -342,7 +340,7 @@
             // cornerDetRadio
             // 
             this.cornerDetRadio.AutoSize = true;
-            this.cornerDetRadio.Location = new System.Drawing.Point(458, 627);
+            this.cornerDetRadio.Location = new System.Drawing.Point(1086, 457);
             this.cornerDetRadio.Margin = new System.Windows.Forms.Padding(2);
             this.cornerDetRadio.Name = "cornerDetRadio";
             this.cornerDetRadio.Size = new System.Drawing.Size(102, 17);
@@ -354,7 +352,7 @@
             // pipelineRadio
             // 
             this.pipelineRadio.AutoSize = true;
-            this.pipelineRadio.Location = new System.Drawing.Point(1088, 559);
+            this.pipelineRadio.Location = new System.Drawing.Point(1086, 414);
             this.pipelineRadio.Name = "pipelineRadio";
             this.pipelineRadio.Size = new System.Drawing.Size(138, 17);
             this.pipelineRadio.TabIndex = 39;
@@ -365,7 +363,7 @@
             // findCentroid
             // 
             this.findCentroid.AutoSize = true;
-            this.findCentroid.Location = new System.Drawing.Point(457, 649);
+            this.findCentroid.Location = new System.Drawing.Point(1086, 502);
             this.findCentroid.Name = "findCentroid";
             this.findCentroid.Size = new System.Drawing.Size(87, 17);
             this.findCentroid.TabIndex = 40;
@@ -374,39 +372,10 @@
             this.findCentroid.UseVisualStyleBackColor = true;
             this.findCentroid.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
-            // testButton
-            // 
-            this.testButton.AutoSize = true;
-            this.testButton.Location = new System.Drawing.Point(837, 627);
-            this.testButton.Name = "testButton";
-            this.testButton.Size = new System.Drawing.Size(73, 17);
-            this.testButton.TabIndex = 41;
-            this.testButton.TabStop = true;
-            this.testButton.Text = "testButton";
-            this.testButton.UseVisualStyleBackColor = true;
-            this.testButton.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged_1);
-            // 
-            // angleOutput
-            // 
-            this.angleOutput.Location = new System.Drawing.Point(1258, 41);
-            this.angleOutput.Multiline = true;
-            this.angleOutput.Name = "angleOutput";
-            this.angleOutput.Size = new System.Drawing.Size(100, 335);
-            this.angleOutput.TabIndex = 42;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(1258, 19);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(38, 13);
-            this.label1.TabIndex = 43;
-            this.label1.Text = "angles";
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(1088, 22);
+            this.label2.Location = new System.Drawing.Point(1086, 8);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(112, 13);
             this.label2.TabIndex = 44;
@@ -416,11 +385,8 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1516, 739);
+            this.ClientSize = new System.Drawing.Size(1258, 723);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.angleOutput);
-            this.Controls.Add(this.testButton);
             this.Controls.Add(this.findCentroid);
             this.Controls.Add(this.pipelineRadio);
             this.Controls.Add(this.regionLabelRadio);
@@ -494,9 +460,6 @@
         private System.Windows.Forms.RadioButton cornerDetRadio;
         private System.Windows.Forms.RadioButton pipelineRadio;
         private System.Windows.Forms.RadioButton findCentroid;
-        private System.Windows.Forms.RadioButton testButton;
-        private System.Windows.Forms.TextBox angleOutput;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
     }
 }

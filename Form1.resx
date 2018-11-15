@@ -126,4 +126,7 @@
   <data name="kernelInput.Text" xml:space="preserve">
     <value>Seperate pixels in the structuring element with spaces, use enter for a new row. Use -1 for inactive pixels to describe the structuring element. For binary images, use 0 for active pixels. In greyscale images, use a value between 0 and 255 for the activity and intensity of a pixel.</value>
   </data>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>59</value>
+  </metadata>
 </root>

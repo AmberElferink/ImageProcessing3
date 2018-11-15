@@ -60,10 +60,7 @@ namespace INFOIBV
                 kernelInput.Text = WritedrawPointArr(boundary);
                 BoundaryToOutput(boundary, Image);
             }
-            else if (testButton.Checked)
-            {
-               
-            }
+
             else if (cornerDetRadio.Checked)
             {
                 int n = 0;
@@ -601,6 +598,11 @@ namespace INFOIBV
         }
 
         private void radioButton1_CheckedChanged_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void kernelInput_TextChanged(object sender, EventArgs e)
         {
 
         }

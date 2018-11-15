@@ -301,7 +301,13 @@ namespace INFOIBV
 
         Color[,] PreprocessingPipeline(Color[,] InputImage)
         {
+            if(valueCount(generateHistogram(InputImage)) == 2)
+            {
+                MessageBox2.Text = "Please load a non thresholded image to preprocess";
+                return new Color[InputImage.GetLength(0), InputImage.GetLength(1)];
+            }
             // Variabelen die nodig zijn om de bounding box en region count worden geinitializeerd
+            
             leftUpperBbX = InputImage.GetLength(0);
             leftUpperBbY = InputImage.GetLength(1);
             maxx = 0;
