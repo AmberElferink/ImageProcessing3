@@ -67,7 +67,8 @@
             // 
             // LoadImageButton1
             // 
-            this.LoadImageButton1.Location = new System.Drawing.Point(1086, 626);
+            this.LoadImageButton1.ForeColor = System.Drawing.SystemColors.MenuHighlight;
+            this.LoadImageButton1.Location = new System.Drawing.Point(940, 558);
             this.LoadImageButton1.Name = "LoadImageButton1";
             this.LoadImageButton1.Size = new System.Drawing.Size(103, 23);
             this.LoadImageButton1.TabIndex = 0;
@@ -83,7 +84,7 @@
             // 
             // imageFileName1
             // 
-            this.imageFileName1.Location = new System.Drawing.Point(563, 626);
+            this.imageFileName1.Location = new System.Drawing.Point(417, 558);
             this.imageFileName1.Name = "imageFileName1";
             this.imageFileName1.ReadOnly = true;
             this.imageFileName1.Size = new System.Drawing.Size(505, 20);
@@ -100,7 +101,7 @@
             // 
             // applyButton
             // 
-            this.applyButton.Location = new System.Drawing.Point(1084, 557);
+            this.applyButton.Location = new System.Drawing.Point(939, 607);
             this.applyButton.Name = "applyButton";
             this.applyButton.Size = new System.Drawing.Size(103, 23);
             this.applyButton.TabIndex = 3;
@@ -115,7 +116,7 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(1086, 681);
+            this.saveButton.Location = new System.Drawing.Point(940, 660);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(103, 23);
             this.saveButton.TabIndex = 4;
@@ -134,12 +135,13 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(563, 557);
+            this.progressBar.Location = new System.Drawing.Point(418, 607);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(505, 20);
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar.TabIndex = 6;
             this.progressBar.Visible = false;
+            this.progressBar.Click += new System.EventHandler(this.progressBar_Click);
             // 
             // kernelInput
             // 
@@ -221,7 +223,7 @@
             // 
             // MessageBox2
             // 
-            this.MessageBox2.Location = new System.Drawing.Point(563, 684);
+            this.MessageBox2.Location = new System.Drawing.Point(417, 663);
             this.MessageBox2.Name = "MessageBox2";
             this.MessageBox2.ReadOnly = true;
             this.MessageBox2.Size = new System.Drawing.Size(505, 20);
@@ -230,7 +232,7 @@
             // checkBinary
             // 
             this.checkBinary.AutoSize = true;
-            this.checkBinary.Location = new System.Drawing.Point(1086, 654);
+            this.checkBinary.Location = new System.Drawing.Point(940, 586);
             this.checkBinary.Name = "checkBinary";
             this.checkBinary.Size = new System.Drawing.Size(91, 17);
             this.checkBinary.TabIndex = 29;
@@ -240,7 +242,7 @@
             // checkBlackBackground
             // 
             this.checkBlackBackground.AutoSize = true;
-            this.checkBlackBackground.Location = new System.Drawing.Point(886, 654);
+            this.checkBlackBackground.Location = new System.Drawing.Point(740, 586);
             this.checkBlackBackground.Name = "checkBlackBackground";
             this.checkBlackBackground.Size = new System.Drawing.Size(194, 17);
             this.checkBlackBackground.TabIndex = 30;
@@ -283,7 +285,7 @@
             // RightAsInput
             // 
             this.RightAsInput.AutoSize = true;
-            this.RightAsInput.Location = new System.Drawing.Point(1086, 603);
+            this.RightAsInput.Location = new System.Drawing.Point(940, 637);
             this.RightAsInput.Name = "RightAsInput";
             this.RightAsInput.Size = new System.Drawing.Size(142, 17);
             this.RightAsInput.TabIndex = 34;
@@ -385,7 +387,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1258, 723);
+            this.ClientSize = new System.Drawing.Size(1258, 701);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.findCentroid);
             this.Controls.Add(this.pipelineRadio);
