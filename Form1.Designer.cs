@@ -160,7 +160,6 @@
             this.ErosionRadio.Name = "ErosionRadio";
             this.ErosionRadio.Size = new System.Drawing.Size(60, 17);
             this.ErosionRadio.TabIndex = 9;
-            this.ErosionRadio.TabStop = true;
             this.ErosionRadio.Text = "Erosion";
             this.ErosionRadio.UseVisualStyleBackColor = true;
             // 
@@ -171,7 +170,6 @@
             this.DilationRadio.Name = "DilationRadio";
             this.DilationRadio.Size = new System.Drawing.Size(60, 17);
             this.DilationRadio.TabIndex = 10;
-            this.DilationRadio.TabStop = true;
             this.DilationRadio.Text = "Dilation";
             this.DilationRadio.UseVisualStyleBackColor = true;
             // 
@@ -182,7 +180,6 @@
             this.OpeningRadio.Name = "OpeningRadio";
             this.OpeningRadio.Size = new System.Drawing.Size(65, 17);
             this.OpeningRadio.TabIndex = 11;
-            this.OpeningRadio.TabStop = true;
             this.OpeningRadio.Text = "Opening";
             this.OpeningRadio.UseVisualStyleBackColor = true;
             // 
@@ -193,7 +190,6 @@
             this.ClosingRadio.Name = "ClosingRadio";
             this.ClosingRadio.Size = new System.Drawing.Size(59, 17);
             this.ClosingRadio.TabIndex = 12;
-            this.ClosingRadio.TabStop = true;
             this.ClosingRadio.Text = "Closing";
             this.ClosingRadio.UseVisualStyleBackColor = true;
             // 
@@ -204,7 +200,6 @@
             this.ValueRadio.Name = "ValueRadio";
             this.ValueRadio.Size = new System.Drawing.Size(97, 17);
             this.ValueRadio.TabIndex = 15;
-            this.ValueRadio.TabStop = true;
             this.ValueRadio.Text = "Value Counting";
             this.ValueRadio.UseVisualStyleBackColor = true;
             this.ValueRadio.CheckedChanged += new System.EventHandler(this.ValueRadio_CheckedChanged);
@@ -216,7 +211,6 @@
             this.BoundaryRadio.Name = "BoundaryRadio";
             this.BoundaryRadio.Size = new System.Drawing.Size(101, 17);
             this.BoundaryRadio.TabIndex = 16;
-            this.BoundaryRadio.TabStop = true;
             this.BoundaryRadio.Text = "Boundary Trace";
             this.BoundaryRadio.UseVisualStyleBackColor = true;
             this.BoundaryRadio.CheckedChanged += new System.EventHandler(this.BoundaryRadio_CheckedChanged);
@@ -257,7 +251,6 @@
             this.thresholdRadio.Name = "thresholdRadio";
             this.thresholdRadio.Size = new System.Drawing.Size(97, 17);
             this.thresholdRadio.TabIndex = 32;
-            this.thresholdRadio.TabStop = true;
             this.thresholdRadio.Text = "Threshold Filter";
             this.thresholdRadio.UseVisualStyleBackColor = true;
             this.thresholdRadio.CheckedChanged += new System.EventHandler(this.thresholdRadio_CheckedChanged);
@@ -311,7 +304,6 @@
             this.greyscaleRadio.Name = "greyscaleRadio";
             this.greyscaleRadio.Size = new System.Drawing.Size(72, 17);
             this.greyscaleRadio.TabIndex = 36;
-            this.greyscaleRadio.TabStop = true;
             this.greyscaleRadio.Text = "Greyscale";
             this.greyscaleRadio.UseVisualStyleBackColor = true;
             // 
@@ -323,7 +315,6 @@
             this.preprocessingRadio.Name = "preprocessingRadio";
             this.preprocessingRadio.Size = new System.Drawing.Size(132, 17);
             this.preprocessingRadio.TabIndex = 37;
-            this.preprocessingRadio.TabStop = true;
             this.preprocessingRadio.Text = "Preprocessing Pipeline";
             this.preprocessingRadio.UseVisualStyleBackColor = true;
             // 
@@ -335,7 +326,6 @@
             this.regionLabelRadio.Name = "regionLabelRadio";
             this.regionLabelRadio.Size = new System.Drawing.Size(102, 17);
             this.regionLabelRadio.TabIndex = 38;
-            this.regionLabelRadio.TabStop = true;
             this.regionLabelRadio.Text = "Region Labeling";
             this.regionLabelRadio.UseVisualStyleBackColor = true;
             // 
@@ -347,13 +337,13 @@
             this.cornerDetRadio.Name = "cornerDetRadio";
             this.cornerDetRadio.Size = new System.Drawing.Size(102, 17);
             this.cornerDetRadio.TabIndex = 36;
-            this.cornerDetRadio.TabStop = true;
             this.cornerDetRadio.Text = "corner detection";
             this.cornerDetRadio.UseVisualStyleBackColor = true;
             // 
             // pipelineRadio
             // 
             this.pipelineRadio.AutoSize = true;
+            this.pipelineRadio.Checked = true;
             this.pipelineRadio.Location = new System.Drawing.Point(1086, 414);
             this.pipelineRadio.Name = "pipelineRadio";
             this.pipelineRadio.Size = new System.Drawing.Size(138, 17);
@@ -369,7 +359,6 @@
             this.findCentroid.Name = "findCentroid";
             this.findCentroid.Size = new System.Drawing.Size(87, 17);
             this.findCentroid.TabIndex = 40;
-            this.findCentroid.TabStop = true;
             this.findCentroid.Text = "Find Centroid";
             this.findCentroid.UseVisualStyleBackColor = true;
             this.findCentroid.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);

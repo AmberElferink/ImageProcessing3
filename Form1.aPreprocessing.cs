@@ -334,6 +334,12 @@ namespace INFOIBV
                 RegionLabeling(greyscale, OpeningImage);
                 Console.WriteLine("regionCount: " + regionCount + " at greyscale " + greyscale + ", currentRegions: " + currentRegions);
                 greyscale++;
+                if (greyscale > 100)
+                {
+                    MessageBox2.Text = "Threshold value is above 100, please check if the left image is a non preprocessed image";
+                    break;
+                }
+
             }
 
             // Hierna wordt de bounding box uit de grijsafbeelding gesneden en als output verder verwerkt.
